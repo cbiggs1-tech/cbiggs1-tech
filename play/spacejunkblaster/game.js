@@ -2262,15 +2262,8 @@ function updateGame() {
     }
 
     // Torch (spacebar or left mouse or gamepad fire)
-    let gpData = pollGamepad();
-    let gpFire = gpData?.fire || false;
+    let gpFire = pollGamepad()?.fire || false;
     torchOn = keyIsDown(32) || mouse.leftDown || gpFire;
-
-    // Debug gamepad fire - press Y to see status
-    if (gpData?.buttonY) {
-        console.log('GP connected:', gamepadConnected, 'fire:', gpFire, 'buttonA:', gpData?.buttonA, 'buttons[0]:', gpData ? 'exists' : 'null');
-    }
-
     if (torchOn && frameCount % 3 === 0) {
         playTorchSound();
     }
