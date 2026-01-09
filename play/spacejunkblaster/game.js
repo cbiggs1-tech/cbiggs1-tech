@@ -2,6 +2,11 @@
 // Clean up orbital debris with your plasma torch!
 
 let gameState = 'MENU'; // MENU, PLAYING, GAMEOVER, ENTER_NAME, EDIT_NAME
+
+// Background music
+let bgMusic = null;
+let musicPlaying = false;
+let musicVolume = 0.3; // Quiet so sound effects are audible
 let stars = [];
 let junk = [];
 let hotJunk = []; // Junk being melted
@@ -103,7 +108,23 @@ function setup() {
     // Load high scores from localStorage
     loadHighScores();
 
+    // Initialize background music
+    bgMusic = new Audio('music.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = musicVolume;
+
     textFont('Courier New');
+}
+
+function toggleMusic() {
+    if (!bgMusic) return;
+    if (musicPlaying) {
+        bgMusic.pause();
+        musicPlaying = false;
+    } else {
+        bgMusic.play();
+        musicPlaying = true;
+    }
 }
 
 function windowResized() {
@@ -1855,13 +1876,9 @@ function drawMenu() {
         text('LEFT CLICK: FIRE PLASMA | RIGHT CLICK: THRUST', width / 2, height * 0.925);
     }
 
-    // Reset option
-    fill(255, 80, 80);
-    if (gamepadConnected) {
-        text('X: RESET ALL SCORES & PLAYERS', width / 2, height * 0.95);
-    } else {
-        text('R: RESET ALL SCORES & PLAYERS', width / 2, height * 0.95);
-    }
+    // Music toggle
+    fill(0, 255, 0);
+    text('M: MUSIC ' + (musicPlaying ? 'ON' : 'OFF'), width / 2, height * 0.95);
 
     fill(0, 255, 255);
     let blink = sin(frameCount * 0.1) > 0;
@@ -2873,6 +2890,12 @@ function startGame() {
 
 function keyPressed() {
     initAudio();
+
+    // Music toggle works in any state
+    if (key === 'm' || key === 'M') {
+        toggleMusic();
+        return;
+    }
 
     if (gameState === 'MENU') {
         if (keyCode === UP_ARROW) {

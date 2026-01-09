@@ -31,8 +31,32 @@ let powerUps = [];
 // Audio context for retro sounds
 let audioCtx = null;
 
+// Background music
+let bgMusic = null;
+let musicPlaying = false;
+let musicVolume = 0.3;
+
 function initAudio() {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function initMusic() {
+    if (!bgMusic) {
+        bgMusic = new Audio('music.mp3');
+        bgMusic.loop = true;
+        bgMusic.volume = musicVolume;
+    }
+}
+
+function toggleMusic() {
+    initMusic();
+    if (musicPlaying) {
+        bgMusic.pause();
+        musicPlaying = false;
+    } else {
+        bgMusic.play();
+        musicPlaying = true;
+    }
 }
 
 function playSound(type) {
@@ -218,6 +242,12 @@ canvas.addEventListener('contextmenu', (e) => {
 
 // Also allow space/click to start for convenience
 document.addEventListener('keydown', (e) => {
+    // Music toggle works in any state
+    if (e.key === 'm' || e.key === 'M') {
+        toggleMusic();
+        return;
+    }
+
     if (e.code === 'Space') {
         if (gameState === GameState.MENU) {
             startGame();

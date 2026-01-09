@@ -67,5 +67,27 @@
             </footer>
         </main>
     </div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="music/arcade-dance.mp3" type="audio/mpeg">
+    </audio>
+    <button id="musicToggle" class="music-btn">MUSIC: OFF</button>
+    <script>
+        const music = document.getElementById('bgMusic');
+        const btn = document.getElementById('musicToggle');
+        music.volume = 0.4;
+        btn.addEventListener('click', () => {
+            if (music.paused) {
+                music.play();
+                btn.textContent = 'MUSIC: ON';
+                btn.classList.add('playing');
+            } else {
+                music.pause();
+                btn.textContent = 'MUSIC: OFF';
+                btn.classList.remove('playing');
+            }
+        });
+    </script>
 </body>
 </html>
