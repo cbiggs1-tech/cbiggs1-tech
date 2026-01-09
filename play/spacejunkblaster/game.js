@@ -2178,10 +2178,6 @@ function updateGame() {
 
     // Gamepad controls
     let gp = pollGamepad();
-    // Debug every second
-    if (frameCount % 60 === 0 && gamepadConnected) {
-        console.log('Gamepad poll:', gp ? 'OK' : 'NULL', 'fire:', gp?.fire, 'buttonA:', gp?.buttonA);
-    }
     if (gp) {
         // Left stick for aiming/rotation
         if (abs(gp.leftX) > 0 || abs(gp.leftY) > 0) {
@@ -2233,15 +2229,7 @@ function updateGame() {
             thrusting = true;
         }
 
-        // Fire button (A, RB, RT)
-        if (gp.fire) {
-            torchOn = true;
-        }
-
-        // Debug: show gamepad fire state (remove after testing)
-        if (frameCount % 60 === 0 && gp.buttonA) {
-            console.log('Gamepad A pressed, fire:', gp.fire);
-        }
+        // Fire button (A, RB, RT) - handled in torchOn line below
     }
 
     // Apply velocity and friction
@@ -2273,8 +2261,9 @@ function updateGame() {
         playThrusterSound();
     }
 
-    // Torch (spacebar or left mouse)
-    torchOn = keyIsDown(32) || mouse.leftDown;
+    // Torch (spacebar or left mouse or gamepad fire)
+    let gpFire = pollGamepad()?.fire || false;
+    torchOn = keyIsDown(32) || mouse.leftDown || gpFire;
     if (torchOn && frameCount % 3 === 0) {
         playTorchSound();
     }
