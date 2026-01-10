@@ -56,7 +56,60 @@
             </footer>
         </main>
     </div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="music/deep-space-10.mp3" type="audio/mpeg">
+    </audio>
+    <button id="musicToggle" class="music-btn">MUSIC: ON</button>
     <script>
+        const music = document.getElementById('bgMusic');
+        const btn = document.getElementById('musicToggle');
+        music.volume = 0.4;
+
+        let autoplayBlocked = false;
+
+        function updateButtonState(playing) {
+            if (playing) {
+                btn.textContent = 'MUSIC: ON';
+                btn.classList.add('playing');
+            } else {
+                btn.textContent = 'MUSIC: OFF';
+                btn.classList.remove('playing');
+            }
+        }
+
+        // Always try to play music on page load (default is ON)
+        music.play().then(() => {
+            updateButtonState(true);
+        }).catch(() => {
+            autoplayBlocked = true;
+            // Still show ON since that's the intended state
+            updateButtonState(true);
+        });
+
+        // If autoplay was blocked, start music on first user interaction
+        document.addEventListener('click', function startMusicOnInteraction(e) {
+            if (e.target === btn) return; // Let button handler deal with it
+            if (autoplayBlocked) {
+                music.play().then(() => {
+                    autoplayBlocked = false;
+                    updateButtonState(true);
+                });
+            }
+        }, { once: true });
+
+        btn.addEventListener('click', () => {
+            if (music.paused) {
+                music.play();
+                updateButtonState(true);
+                autoplayBlocked = false;
+            } else {
+                music.pause();
+                updateButtonState(false);
+            }
+        });
+
         // ESC key to go to home page
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
