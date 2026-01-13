@@ -419,6 +419,26 @@
             text-decoration: none;
         }
 
+        .help-btn {
+            position: fixed;
+            top: 1rem;
+            left: 4.5rem;
+            width: 3rem;
+            height: 3rem;
+            background: var(--parchment);
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--ink);
+            text-decoration: none;
+        }
+
         .music-btn {
             position: fixed;
             bottom: 1rem;
@@ -801,6 +821,7 @@
     <div class="stars" id="stars"></div>
 
     <a href="../../games.html" class="home-btn" title="Back to Games">ESC</a>
+    <a href="readme.html" class="help-btn" title="How to Play">?</a>
 
     <header class="header">
         <h1>BEGAT</h1>
@@ -1832,7 +1853,8 @@
                     document.getElementById('shareBtn'),
                     document.getElementById('musicToggle'),
                     document.querySelector('.menu-btn'),
-                    document.querySelector('.home-btn')
+                    document.querySelector('.home-btn'),
+                    document.querySelector('.help-btn')
                 ];
                 elementsToHide.forEach(el => { if (el) el.style.visibility = 'hidden'; });
 

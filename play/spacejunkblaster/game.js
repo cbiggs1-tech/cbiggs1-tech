@@ -1954,9 +1954,9 @@ function drawMenu() {
         text('LEFT CLICK: FIRE PLASMA | RIGHT CLICK: THRUST', width / 2, height * 0.925);
     }
 
-    // Music toggle
+    // Music toggle and How to Play
     fill(0, 255, 0);
-    text('M: MUSIC ' + (musicPlaying ? 'ON' : 'OFF'), width / 2, height * 0.95);
+    text('M: MUSIC ' + (musicPlaying ? 'ON' : 'OFF') + '  |  H: HOW TO PLAY', width / 2, height * 0.95);
 
     fill(0, 255, 255);
     let blink = sin(frameCount * 0.1) > 0;
@@ -3012,6 +3012,12 @@ function keyPressed() {
     if (key === 'p' || key === 'P' || keyCode === 120) { // 120 = F9
         takeScreenshot();
         return false; // Prevent default
+    }
+
+    // How to Play - H key (only from menu)
+    if ((key === 'h' || key === 'H') && gameState === 'MENU') {
+        window.location.href = 'readme.html';
+        return;
     }
 
     // ESC during gameplay returns to menu
