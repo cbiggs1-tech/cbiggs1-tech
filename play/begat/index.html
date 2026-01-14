@@ -360,6 +360,18 @@
             animation: shake 0.5s ease;
         }
 
+        .quiz-option.assisted-highlight {
+            background: var(--gold);
+            color: var(--ink);
+            border-color: var(--gold);
+            animation: pulse-gold 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 5px var(--gold); }
+            50% { box-shadow: 0 0 20px var(--gold), 0 0 30px var(--gold-glow); }
+        }
+
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-10px); }
@@ -1229,15 +1241,118 @@
             currentLevel: 0,
             score: 0,
             stars: 0,
+            mistakes: 0,                    // Total wrong MCQ guesses
             unlockedCards: new Set(),
             placedCards: new Map(),
+            pendingRedemptions: new Map(),  // Map<ancestorIndex, {penalty, slotIndex}>
+            assistedCards: new Set(),       // Cards that were unlocked via assisted reveal
             soundEnabled: true,
             speechEnabled: false,
             highContrast: false,
             colorblind: false,
             currentQuizCard: null,
-            draggedCard: null
+            currentSlotIndex: null,         // The slot being filled (determines correct ancestor)
+            draggedCard: null,
+            quizAttempts: 0                 // Track attempts for current quiz
         };
+
+        // ==============================================
+        // SCORING SYSTEM - Point values by level
+        // ==============================================
+        const LEVEL_POINTS = {
+            // Level 1: Patriarchs (Easy)
+            1: { fullCorrect: 50, assisted: 25, wrongPenalty: -20, redemptionRefund: 20 },
+            // Level 2: Kings of Judah (Medium)
+            2: { fullCorrect: 75, assisted: 37, wrongPenalty: -40, redemptionRefund: 40 },
+            // Level 3: Post-Exile (Medium)
+            3: { fullCorrect: 100, assisted: 50, wrongPenalty: -70, redemptionRefund: 70 },
+            // Level 4: Full Lineage (Hard)
+            4: { fullCorrect: 150, assisted: 75, wrongPenalty: -120, redemptionRefund: 120 }
+        };
+
+        // Tier multipliers based on net mistakes at level completion
+        const TIER_MULTIPLIERS = [
+            { maxMistakes: 1, multiplier: 1.5, label: 'PERFECT!' },
+            { maxMistakes: 4, multiplier: 1.3, label: 'EXCELLENT!' },
+            { maxMistakes: 8, multiplier: 1.15, label: 'GOOD!' },
+            { maxMistakes: Infinity, multiplier: 1.0, label: 'COMPLETED' }
+        ];
+
+        /**
+         * Get point values for the current level (1-indexed for display, 0-indexed internally)
+         */
+        function getLevelPoints() {
+            const levelNum = gameState.currentLevel + 1; // Convert to 1-indexed
+            return LEVEL_POINTS[levelNum] || LEVEL_POINTS[1];
+        }
+
+        /**
+         * Calculate theoretical maximum score for current level
+         */
+        function getLevelMaxScore() {
+            const range = getCurrentGenealogyRange();
+            const slotCount = range.end - range.start + 1;
+            const points = getLevelPoints();
+            // Max = all slots answered correctly on first try
+            return slotCount * points.fullCorrect;
+        }
+
+        /**
+         * Get tier multiplier based on current net mistakes
+         */
+        function getTierMultiplier(netMistakes) {
+            for (const tier of TIER_MULTIPLIERS) {
+                if (netMistakes <= tier.maxMistakes) {
+                    return tier;
+                }
+            }
+            return TIER_MULTIPLIERS[TIER_MULTIPLIERS.length - 1];
+        }
+
+        /**
+         * Show feedback message to player
+         */
+        function showFeedbackMessage(message, type = 'info') {
+            const hint = document.getElementById('hintDisplay');
+            hint.textContent = message;
+            hint.className = 'hint-display visible';
+            if (type === 'success') hint.style.borderColor = 'var(--success)';
+            else if (type === 'error') hint.style.borderColor = 'var(--error)';
+            else if (type === 'redemption') hint.style.borderColor = 'var(--gold)';
+            else hint.style.borderColor = 'var(--gold)';
+
+            setTimeout(() => {
+                hint.classList.remove('visible');
+                hint.style.borderColor = '';
+            }, 3000);
+        }
+
+        /**
+         * Check and apply redemption when placing a card at its proper slot
+         */
+        function checkAndApplyRedemption(ancestorIndex) {
+            if (!gameState.pendingRedemptions.has(ancestorIndex)) {
+                return false;
+            }
+
+            const redemptionData = gameState.pendingRedemptions.get(ancestorIndex);
+            const points = getLevelPoints();
+
+            // Award full points + refund the original penalty
+            gameState.score += points.fullCorrect + points.redemptionRefund;
+            gameState.mistakes -= 1; // Reduce mistake count
+            gameState.pendingRedemptions.delete(ancestorIndex);
+            gameState.stars += 1;
+
+            const person = genealogy[ancestorIndex];
+            showFeedbackMessage(
+                `✅ ${person.name} Redeemed! +${points.fullCorrect} +${points.redemptionRefund} refund`,
+                'redemption'
+            );
+            playChime();
+
+            return true;
+        }
 
         // Audio Context for Web Audio API
         let audioCtx = null;
@@ -1463,10 +1578,20 @@
         // Initialize game
         function initGame() {
             const range = getCurrentGenealogyRange();
+
+            // Reset all scoring state
+            gameState.score = 0;
+            gameState.stars = 0;
+            gameState.mistakes = 0;
             gameState.unlockedCards = new Set();
             gameState.placedCards = new Map();
+            gameState.pendingRedemptions = new Map();
+            gameState.assistedCards = new Set();
+            gameState.currentQuizCard = null;
+            gameState.currentSlotIndex = null;
+            gameState.quizAttempts = 0;
 
-            // First and last are always unlocked
+            // First and last are always unlocked and placed
             gameState.unlockedCards.add(range.start);
             gameState.unlockedCards.add(range.end);
             gameState.placedCards.set(range.start, 0);
@@ -1521,6 +1646,17 @@
                 } else {
                     slot.classList.add('ready');
                     slot.innerHTML = '<span style="font-size:2rem;color:var(--gold);opacity:0.5">?</span>';
+
+                    // Make empty slots clickable to trigger quiz
+                    slot.style.cursor = 'pointer';
+                    slot.addEventListener('click', () => openQuizForSlot(i));
+                    slot.addEventListener('touchend', (e) => {
+                        // Only trigger if not dragging
+                        if (!isTouchDragging) {
+                            e.preventDefault();
+                            openQuizForSlot(i);
+                        }
+                    });
                 }
 
                 // Drop zone events
@@ -1607,29 +1743,69 @@
             });
         }
 
-        // Quiz system
-        function openQuiz(cardIndex) {
-            gameState.currentQuizCard = cardIndex;
-            const person = genealogy[cardIndex];
+        // ==============================================
+        // QUIZ SYSTEM - New slot-based trivia mechanics
+        // ==============================================
 
-            // Random description
-            const desc = person.desc[Math.floor(Math.random() * person.desc.length)];
+        /**
+         * Find the next empty slot that needs to be filled
+         * Returns the slot position (0-indexed within current level range)
+         */
+        function findNextEmptySlot() {
+            const range = getCurrentGenealogyRange();
+            for (let i = 1; i < range.data.length - 1; i++) { // Skip first and last (fixed)
+                const actualIndex = range.start + i;
+                if (!gameState.placedCards.has(actualIndex)) {
+                    return i;
+                }
+            }
+            return -1; // All slots filled
+        }
+
+        /**
+         * Open quiz for a specific timeline slot
+         * Shows trivia about the CORRECT ancestor for that slot
+         */
+        function openQuizForSlot(slotPosition) {
+            const range = getCurrentGenealogyRange();
+            const correctAncestorIndex = range.start + slotPosition;
+
+            gameState.currentSlotIndex = slotPosition;
+            gameState.currentQuizCard = correctAncestorIndex;
+            gameState.quizAttempts = 0;
+
+            const correctPerson = genealogy[correctAncestorIndex];
+
+            // Show trivia about the CORRECT ancestor for this slot
+            const desc = correctPerson.desc[Math.floor(Math.random() * correctPerson.desc.length)];
             document.getElementById('quizDescription').textContent = desc;
             speak(desc);
 
-            // Generate options (correct + 3 random)
-            const range = getCurrentGenealogyRange();
-            const options = [cardIndex];
-            const available = [];
+            // Generate 4 options: correct answer + 3 distractors from unplaced cards
+            const options = [correctAncestorIndex];
+            const availableDistractors = [];
 
-            for (let i = range.start; i <= range.end; i++) {
-                if (i !== cardIndex) available.push(i);
+            // Get other unplaced cards as potential distractors
+            for (let i = range.start + 1; i < range.end; i++) {
+                if (i !== correctAncestorIndex && !gameState.placedCards.has(i)) {
+                    availableDistractors.push(i);
+                }
             }
 
-            while (options.length < 4 && available.length > 0) {
-                const randomIdx = Math.floor(Math.random() * available.length);
-                options.push(available[randomIdx]);
-                available.splice(randomIdx, 1);
+            // If not enough unplaced cards, pull from all cards in range
+            if (availableDistractors.length < 3) {
+                for (let i = range.start; i <= range.end; i++) {
+                    if (i !== correctAncestorIndex && !availableDistractors.includes(i)) {
+                        availableDistractors.push(i);
+                    }
+                }
+            }
+
+            // Select 3 random distractors
+            while (options.length < 4 && availableDistractors.length > 0) {
+                const randomIdx = Math.floor(Math.random() * availableDistractors.length);
+                options.push(availableDistractors[randomIdx]);
+                availableDistractors.splice(randomIdx, 1);
             }
 
             // Shuffle options
@@ -1646,7 +1822,7 @@
                 btn.className = 'quiz-option';
                 btn.textContent = genealogy[optIdx].name;
                 btn.dataset.index = optIdx;
-                btn.addEventListener('click', () => checkQuizAnswer(optIdx));
+                btn.addEventListener('click', () => handleQuizMCQ(optIdx));
                 optionsContainer.appendChild(btn);
             });
 
@@ -1654,50 +1830,145 @@
             document.getElementById('quizModal').classList.add('active');
         }
 
-        function checkQuizAnswer(selectedIndex) {
+        /**
+         * Legacy function for backwards compatibility - opens quiz for clicked card
+         * Now redirects to slot-based quiz for next empty slot
+         */
+        function openQuiz(cardIndex) {
+            const nextSlot = findNextEmptySlot();
+            if (nextSlot >= 0) {
+                openQuizForSlot(nextSlot);
+            }
+        }
+
+        /**
+         * Handle MCQ answer selection
+         * Implements the new scoring system with redemption tracking
+         */
+        function handleQuizMCQ(selectedIndex) {
             const feedback = document.getElementById('quizFeedback');
             const options = document.querySelectorAll('.quiz-option');
+            const correctIndex = gameState.currentQuizCard;
+            const points = getLevelPoints();
+            const range = getCurrentGenealogyRange();
+            const slotPosition = gameState.currentSlotIndex;
 
-            options.forEach(opt => {
-                opt.disabled = true;
-                if (parseInt(opt.dataset.index) === gameState.currentQuizCard) {
-                    opt.classList.add('correct');
-                } else if (parseInt(opt.dataset.index) === selectedIndex && selectedIndex !== gameState.currentQuizCard) {
-                    opt.classList.add('wrong');
+            gameState.quizAttempts++;
+
+            // Check if this is a redemption opportunity
+            const isRedemptionAttempt = gameState.pendingRedemptions.has(correctIndex);
+
+            if (selectedIndex === correctIndex) {
+                // CORRECT ANSWER
+                options.forEach(opt => {
+                    opt.disabled = true;
+                    if (parseInt(opt.dataset.index) === correctIndex) {
+                        opt.classList.add('correct');
+                    }
+                });
+
+                if (gameState.quizAttempts === 1) {
+                    // First attempt correct - full points
+                    if (isRedemptionAttempt) {
+                        // Redemption success!
+                        const wasRedeemed = checkAndApplyRedemption(correctIndex);
+                        feedback.textContent = `✅ Redeemed! +${points.fullCorrect} +${points.redemptionRefund}`;
+                    } else {
+                        // Normal first-attempt correct
+                        gameState.score += points.fullCorrect;
+                        gameState.stars += 1;
+                        feedback.textContent = `Correct! +${points.fullCorrect}`;
+                        showFeedbackMessage(`+${points.fullCorrect} points!`, 'success');
+                    }
+                } else {
+                    // Assisted correct (after wrong guess)
+                    gameState.score += points.assisted;
+                    gameState.assistedCards.add(correctIndex);
+                    feedback.textContent = `+${points.assisted} (Assisted)`;
+                    showFeedbackMessage(`+${points.assisted} (Assisted)`, 'info');
+
+                    // If this was a redemption slot but player needed assistance, no redemption
+                    if (isRedemptionAttempt) {
+                        gameState.pendingRedemptions.delete(correctIndex);
+                    }
                 }
-            });
 
-            if (selectedIndex === gameState.currentQuizCard) {
-                feedback.textContent = 'Correct!';
                 feedback.className = 'quiz-feedback success';
                 playChime();
                 vibrate(100);
                 speak('Correct!');
 
-                gameState.unlockedCards.add(gameState.currentQuizCard);
-                gameState.score += 200;
-                gameState.stars += 1;
+                // Place the card on the timeline
+                gameState.unlockedCards.add(correctIndex);
+                gameState.placedCards.set(correctIndex, slotPosition);
 
                 setTimeout(() => {
                     document.getElementById('quizModal').classList.remove('active');
+                    renderTimeline();
                     renderCardPool();
                     updateDisplay();
-                }, 1000);
+                    checkWinCondition();
+                }, 1200);
+
             } else {
-                feedback.textContent = 'Try again!';
+                // WRONG ANSWER
+                options.forEach(opt => {
+                    opt.disabled = true;
+                    if (parseInt(opt.dataset.index) === correctIndex) {
+                        opt.classList.add('correct');
+                    } else if (parseInt(opt.dataset.index) === selectedIndex) {
+                        opt.classList.add('wrong');
+                    }
+                });
+
+                // Apply penalty and track mistake
+                gameState.score += points.wrongPenalty;
+                gameState.mistakes += 1;
+
+                // Mark the wrongly selected card for potential redemption
+                // (only if it's not already placed and not the correct answer's slot)
+                if (!gameState.placedCards.has(selectedIndex) &&
+                    !gameState.pendingRedemptions.has(selectedIndex) &&
+                    selectedIndex >= range.start && selectedIndex <= range.end) {
+                    gameState.pendingRedemptions.set(selectedIndex, {
+                        penalty: Math.abs(points.wrongPenalty),
+                        originalSlot: slotPosition
+                    });
+                }
+
+                const wrongPerson = genealogy[selectedIndex];
+                const correctPerson = genealogy[correctIndex];
+
+                feedback.textContent = `❌ Wrong! The answer is ${correctPerson.name}`;
                 feedback.className = 'quiz-feedback error';
                 playError();
                 vibrate([50, 50, 50]);
-                speak('Try again');
 
+                // Show redemption hint for the wrong card
+                showFeedbackMessage(
+                    `❌ ${wrongPerson.name} misplaced! Guess correctly at slot #${selectedIndex - range.start + 1} to redeem +${points.redemptionRefund}`,
+                    'error'
+                );
+
+                // Re-enable only the correct answer after delay (assisted mode)
                 setTimeout(() => {
                     options.forEach(opt => {
-                        opt.disabled = false;
-                        opt.classList.remove('correct', 'wrong');
+                        const idx = parseInt(opt.dataset.index);
+                        if (idx === correctIndex) {
+                            opt.disabled = false;
+                            opt.classList.remove('correct');
+                            opt.classList.add('assisted-highlight');
+                        }
                     });
-                    feedback.textContent = '';
-                }, 1500);
+                    feedback.textContent = 'Select the correct answer to continue';
+                    feedback.className = 'quiz-feedback';
+                }, 1800);
             }
+        }
+
+        // Legacy function name for compatibility
+        function checkQuizAnswer(selectedIndex) {
+            handleQuizMCQ(selectedIndex);
         }
 
         // Drag and drop handlers
@@ -1896,20 +2167,68 @@
 
             if (allPlaced) {
                 setTimeout(() => {
+                    // Calculate level completion bonuses
+                    const completionResult = calculateLevelCompletion();
+
                     playWin();
                     vibrate([100, 50, 100, 50, 200]);
-                    document.getElementById('finalScore').textContent = `Final Score: ${gameState.score}`;
+
+                    // Build detailed score breakdown
+                    const finalScoreEl = document.getElementById('finalScore');
+                    finalScoreEl.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; margin-bottom: 10px;">${completionResult.tierLabel}</div>
+                            <div>Base Score: ${completionResult.baseScore}</div>
+                            <div>Multiplier (${completionResult.netMistakes} mistakes): ×${completionResult.multiplier}</div>
+                            <div>Completion Bonus: +${completionResult.completionBonus}</div>
+                            <div style="font-size: 1.5rem; margin-top: 10px; color: var(--gold);">
+                                Final Score: ${completionResult.finalScore}
+                            </div>
+                        </div>
+                    `;
+
                     document.getElementById('winModal').classList.add('active');
-                    speak('Behold the Lineage! Congratulations!');
+                    speak(`${completionResult.tierLabel}! Final score: ${completionResult.finalScore}`);
                     saveProgress();
                 }, 500);
             }
         }
 
+        /**
+         * Calculate final score with tier multipliers and completion bonus
+         */
+        function calculateLevelCompletion() {
+            const baseScore = gameState.score;
+            const netMistakes = gameState.mistakes;
+            const tier = getTierMultiplier(netMistakes);
+            const maxScore = getLevelMaxScore();
+
+            // Apply tier multiplier to base score
+            const multipliedScore = Math.floor(baseScore * tier.multiplier);
+
+            // Add completion bonus (20% of theoretical max)
+            const completionBonus = Math.floor(maxScore * 0.2);
+
+            const finalScore = multipliedScore + completionBonus;
+
+            // Update gameState with final score
+            gameState.score = finalScore;
+
+            return {
+                baseScore: baseScore,
+                netMistakes: netMistakes,
+                multiplier: tier.multiplier,
+                tierLabel: tier.label,
+                completionBonus: completionBonus,
+                finalScore: finalScore
+            };
+        }
+
         // Update display
         function updateDisplay() {
             document.getElementById('scoreDisplay').textContent = `Score: ${gameState.score}`;
-            document.getElementById('starsDisplay').textContent = `Stars: ${gameState.stars}`;
+            // Show mistakes instead of stars during gameplay
+            document.getElementById('starsDisplay').textContent = `Mistakes: ${gameState.mistakes}`;
             document.getElementById('levelIndicator').textContent =
                 `Level ${gameState.currentLevel + 1}: ${levels[gameState.currentLevel].name}`;
         }
@@ -1947,8 +2266,7 @@
         });
 
         document.getElementById('newGameBtn').addEventListener('click', () => {
-            gameState.score = 0;
-            initGame();
+            initGame(); // initGame now handles all state resets
             document.getElementById('menuModal').classList.remove('active');
         });
 
@@ -1962,8 +2280,7 @@
                 btn.textContent = `${idx + 1}. ${level.name} (${level.difficulty})`;
                 btn.addEventListener('click', () => {
                     gameState.currentLevel = idx;
-                    gameState.score = 0;
-                    initGame();
+                    initGame(); // initGame handles all state resets
                     document.getElementById('levelModal').classList.remove('active');
                     document.getElementById('menuModal').classList.remove('active');
                 });
@@ -2011,8 +2328,7 @@
 
         document.getElementById('playAgainBtn').addEventListener('click', () => {
             document.getElementById('winModal').classList.remove('active');
-            gameState.score = 0;
-            initGame();
+            initGame(); // initGame handles all state resets
         });
 
         // PWA Install prompt
