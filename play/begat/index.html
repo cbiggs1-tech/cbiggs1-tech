@@ -118,6 +118,11 @@
             display: flex;
             align-items: center;
             -webkit-overflow-scrolling: touch;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
         .timeline {
@@ -186,6 +191,11 @@
             border-top: 2px solid var(--gold);
             padding: 0.75rem;
             overflow-y: auto;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
         .card-pool-label {
@@ -218,7 +228,12 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-user-drag: none;
         }
 
         .card.locked {
@@ -1901,6 +1916,9 @@
             gameState.draggedCard = parseInt(card.dataset.index);
             isTouchDragging = false;
 
+            // Hide any visible tooltip when starting to drag
+            hideDateTooltip();
+
             // Delay clone creation to distinguish tap from drag
             card.touchTimeout = setTimeout(() => {
                 isTouchDragging = true;
@@ -2491,6 +2509,11 @@
                 document.getElementById('loadingScreen').classList.add('hidden');
             }, 1000);
         });
+
+        // Hide tooltip on any touch (mobile fix for hover tooltip getting stuck)
+        document.addEventListener('touchstart', () => {
+            hideDateTooltip();
+        }, { passive: true });
 
         // Prevent zoom on double tap
         document.addEventListener('touchend', (e) => {
