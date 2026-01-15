@@ -1913,12 +1913,11 @@
             hideDateTooltip();
         }
 
-        // Touch/long-press handlers for tooltip on mobile
+        // Touch handlers for tooltip on mobile - show immediately on touch
         function handleTouchStartForTooltip(e, personIndex) {
             const touch = e.touches[0];
-            tooltipTimeout = setTimeout(() => {
-                showDateTooltip(e.currentTarget, personIndex, touch.clientX, touch.clientY);
-            }, 400); // Show after 400ms hold
+            // Show tooltip immediately on touch
+            showDateTooltip(e.currentTarget, personIndex, touch.clientX, touch.clientY);
         }
 
         function handleTouchEndForTooltip() {
@@ -1926,8 +1925,8 @@
                 clearTimeout(tooltipTimeout);
                 tooltipTimeout = null;
             }
-            // Hide tooltip after a delay on touch end
-            setTimeout(hideDateTooltip, 1500);
+            // Hide tooltip after a short delay on touch end
+            setTimeout(hideDateTooltip, 2000);
         }
 
         // Vibration
