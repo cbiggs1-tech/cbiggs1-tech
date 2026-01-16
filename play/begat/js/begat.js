@@ -115,7 +115,7 @@ const genealogy = [
 const levels = [
     { name: "Patriarchs", start: 0, end: 13, difficulty: "Easy", timeLimit: 180 },      // 3 minutes (14 names: Abraham-David)
     { name: "Kings of Judah", start: 14, end: 27, difficulty: "Medium", timeLimit: 240 }, // 4 minutes (14 names: Solomon-Jeconiah)
-    { name: "Post-Exile", start: 28, end: 40, difficulty: "Medium", timeLimit: 300 },   // 5 minutes (13 names: Shealtiel-Jesus)
+    { name: "Post-Exile", start: 27, end: 40, difficulty: "Medium", timeLimit: 300 },   // 5 minutes (14 names: Jeconiah-Jesus)
     { name: "Full Lineage", start: 0, end: 40, difficulty: "Hard", timeLimit: 480 }     // 8 minutes (41 names: Abraham-Jesus)
 ];
 
