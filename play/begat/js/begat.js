@@ -884,16 +884,26 @@ function renderTimeline() {
 
         timeline.appendChild(slot);
     }
+
+    // Render time scale after timeline so it can match the width
+    renderTimeScale();
 }
 
 /**
- * Render time scale above card pool.
- * Shows date markers at intervals.
+ * Render time scale above timeline.
+ * Shows date markers at intervals matching the timeline width.
  */
 function renderTimeScale() {
     const timeScale = document.getElementById('timeScale');
+    const timeline = document.getElementById('timeline');
     const range = getCurrentGenealogyRange();
     timeScale.innerHTML = '';
+
+    // Match the timeline's width and padding
+    const timelineStyle = window.getComputedStyle(timeline);
+    const timelinePadding = parseFloat(timelineStyle.paddingLeft) || 16;
+    timeScale.style.paddingLeft = timelinePadding + 'px';
+    timeScale.style.paddingRight = timelinePadding + 'px';
 
     // Extract year from date string (e.g., "~2166–1991 BC" -> 2166)
     function extractStartYear(dateStr) {
@@ -940,8 +950,6 @@ function renderCardPool() {
     const cardPool = document.getElementById('cardPool');
     const range = getCurrentGenealogyRange();
     cardPool.innerHTML = '';
-
-    renderTimeScale();
 
     // Get cards that haven't been placed (excluding fixed endpoints)
     const availableIndices = [];

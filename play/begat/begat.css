@@ -161,14 +161,20 @@ body {
     overflow-x: auto;
     overflow-y: hidden;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    justify-content: flex-start;
     -webkit-overflow-scrolling: touch;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
     -webkit-touch-callout: none;
+}
+
+.timeline-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-width: max-content;
 }
 
 .timeline {
