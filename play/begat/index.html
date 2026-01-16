@@ -1953,14 +1953,12 @@
             hideDateTooltip();
         }
 
-        // Touch handlers for tooltip on mobile - show after 200ms touch
+        // Touch handlers for tooltip on mobile - show immediately on touch
         function handleTouchStartForTooltip(e, personIndex) {
             const touch = e.touches[0];
             const element = e.currentTarget;
-            // Show tooltip after 200ms delay
-            setTimeout(() => {
-                showDateTooltip(element, personIndex, touch.clientX, touch.clientY);
-            }, 200);
+            // Show tooltip immediately
+            showDateTooltip(element, personIndex, touch.clientX, touch.clientY);
         }
 
         function handleTouchEndForTooltip() {
@@ -1968,8 +1966,8 @@
                 clearTimeout(tooltipTimeout);
                 tooltipTimeout = null;
             }
-            // Hide tooltip after a short delay on touch end
-            setTimeout(hideDateTooltip, 2000);
+            // Keep tooltip visible for 1 second after touch ends, then hide
+            setTimeout(hideDateTooltip, 1000);
         }
 
         // Vibration
@@ -2460,9 +2458,9 @@
             });
         }, { passive: false });
 
-        // Global touch end handler
+        // Global touch end handler (for card pool dragging only)
         document.addEventListener('touchend', (e) => {
-            if (!touchCard) return;
+            if (!touchCard) return; // Only process if we were dragging a card from pool
 
             // Clear timeout if touch ended quickly (was a tap, not drag)
             if (touchCard.touchTimeout) {
@@ -2470,7 +2468,7 @@
                 touchCard.touchTimeout = null;
             }
 
-            // Hide tooltip when touch ends
+            // Hide tooltip when touch ends (only for card pool cards)
             hideDateTooltip();
 
             // Reset slot highlights
