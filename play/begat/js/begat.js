@@ -115,8 +115,8 @@ const genealogy = [
 const levels = [
     { name: "Patriarchs", start: 0, end: 13, difficulty: "Easy", timeLimit: 180 },      // 3 minutes
     { name: "Kings of Judah", start: 14, end: 27, difficulty: "Medium", timeLimit: 240 }, // 4 minutes
-    { name: "Post-Exile", start: 28, end: 41, difficulty: "Medium", timeLimit: 300 },   // 5 minutes
-    { name: "Full Lineage", start: 0, end: 41, difficulty: "Hard", timeLimit: 480 }     // 8 minutes
+    { name: "Post-Exile", start: 28, end: 40, difficulty: "Medium", timeLimit: 300 },   // 5 minutes
+    { name: "Full Lineage", start: 0, end: 40, difficulty: "Hard", timeLimit: 480 }     // 8 minutes
 ];
 
 // ==============================================
