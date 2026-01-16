@@ -829,6 +829,8 @@ function renderTimeline() {
     const timeline = document.getElementById('timeline');
     const range = getCurrentGenealogyRange();
     timeline.innerHTML = '';
+    timeline.setAttribute('role', 'list');
+    timeline.setAttribute('aria-label', `Timeline of ${range.data.length} ancestors from ${genealogy[range.start].name} to ${genealogy[range.end].name}`);
 
     for (let i = 0; i < range.data.length; i++) {
         if (i > 0) {
@@ -841,6 +843,7 @@ function renderTimeline() {
         slot.className = 'timeline-slot';
         slot.dataset.position = i;
         slot.tabIndex = 0; // Keyboard accessibility
+        slot.setAttribute('role', 'listitem');
 
         const actualIndex = range.start + i;
         const isFixed = (i === 0 || i === range.data.length - 1);
@@ -849,6 +852,7 @@ function renderTimeline() {
         if (isFixed || isPlaced) {
             slot.classList.add('fixed');
             const person = genealogy[actualIndex];
+            slot.setAttribute('aria-label', `Timeline position ${i + 1}: ${person.name}, ${person.dates}`);
 
             const iconDiv = document.createElement('div');
             iconDiv.className = 'slot-icon';
@@ -869,6 +873,7 @@ function renderTimeline() {
         } else {
             slot.classList.add('ready');
             slot.innerHTML = '<span style="font-size:2rem;color:var(--gold);opacity:0.5">?</span>';
+            slot.setAttribute('aria-label', `Empty timeline position ${i + 1}. Drop an ancestor card here.`);
         }
 
         // Drop zone events
@@ -958,12 +963,14 @@ function renderCardPool() {
         card.className = 'card';
         card.dataset.index = idx;
         card.tabIndex = 0; // Keyboard accessibility
+        card.setAttribute('role', 'button');
 
         const isUnlocked = gameState.unlockedCards.has(idx);
 
         if (isUnlocked) {
             card.classList.add('unlocked');
             card.draggable = true;
+            card.setAttribute('aria-label', `${person.name}, unlocked. Press Enter to select and drag to timeline.`);
 
             const iconDiv = document.createElement('div');
             iconDiv.className = 'card-icon';
@@ -989,6 +996,7 @@ function renderCardPool() {
             card.addEventListener('keydown', (e) => handleCardKeydown(e, idx));
         } else {
             card.classList.add('locked');
+            card.setAttribute('aria-label', `Locked ancestor card. Press Enter to answer a quiz and unlock.`);
 
             const iconDiv = document.createElement('div');
             iconDiv.className = 'card-icon';
