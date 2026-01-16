@@ -253,6 +253,40 @@
             padding-bottom: 1rem;
         }
 
+        .time-scale {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 1rem;
+            margin-bottom: 0.5rem;
+            height: 2rem;
+            border-bottom: 2px solid var(--gold);
+            position: relative;
+        }
+
+        .time-marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .time-marker::after {
+            content: '';
+            width: 2px;
+            height: 8px;
+            background: var(--gold);
+            position: absolute;
+            bottom: -2px;
+        }
+
+        .time-marker-label {
+            font-size: 0.65rem;
+            color: var(--gold);
+            white-space: nowrap;
+            margin-bottom: 4px;
+        }
+
         .card {
             width: 4.5rem;
             height: 6rem;
@@ -1155,6 +1189,16 @@
                 margin-bottom: 0.3rem;
             }
 
+            .time-scale {
+                height: 1.5rem;
+                padding: 0 0.5rem;
+                margin-bottom: 0.3rem;
+            }
+
+            .time-marker-label {
+                font-size: 0.5rem;
+            }
+
             .card-pool {
                 gap: 0.3rem;
                 padding-bottom: 0.5rem;
@@ -1361,6 +1405,7 @@
         </div>
         <div class="card-pool-area">
             <p class="card-pool-label">Tap a card to unlock, then drag to timeline</p>
+            <div class="time-scale" id="timeScale"></div>
             <div class="card-pool" id="cardPool"></div>
         </div>
     </main>
@@ -2165,11 +2210,66 @@
             }
         }
 
+        // Render time scale above card pool
+        function renderTimeScale() {
+            const timeScale = document.getElementById('timeScale');
+            const range = getCurrentGenealogyRange();
+            timeScale.innerHTML = '';
+
+            // Get start and end dates for the current level
+            const startPerson = genealogy[range.start];
+            const endPerson = genealogy[range.end];
+
+            // Extract years from date strings (e.g., "~2166–1991 BC" -> 2166)
+            function extractStartYear(dateStr) {
+                const match = dateStr.match(/~?(\d+)/);
+                return match ? parseInt(match[1]) : 0;
+            }
+
+            // Create markers at start, every 3rd person, and end
+            const totalCards = range.data.length;
+            const markers = [];
+
+            // Add first marker
+            markers.push({ index: range.start, position: 0 });
+
+            // Add markers every 3rd card (skip first and last)
+            for (let i = 3; i < totalCards - 1; i += 3) {
+                markers.push({ index: range.start + i, position: i / (totalCards - 1) });
+            }
+
+            // Add last marker
+            markers.push({ index: range.end, position: 1 });
+
+            // Create marker elements
+            markers.forEach(marker => {
+                const person = genealogy[marker.index];
+                const markerDiv = document.createElement('div');
+                markerDiv.className = 'time-marker';
+                markerDiv.style.position = 'absolute';
+                markerDiv.style.left = `${marker.position * 100}%`;
+                markerDiv.style.transform = 'translateX(-50%)';
+
+                const label = document.createElement('span');
+                label.className = 'time-marker-label';
+                // Show simplified date (just the start year)
+                const year = extractStartYear(person.dates);
+                const era = person.dates.includes('AD') ? 'AD' : 'BC';
+                label.textContent = era === 'AD' ? `${year} AD` : `${year} BC`;
+
+                markerDiv.appendChild(label);
+                timeScale.appendChild(markerDiv);
+            });
+        }
+
         // Render card pool
         function renderCardPool() {
             const cardPool = document.getElementById('cardPool');
             const range = getCurrentGenealogyRange();
             cardPool.innerHTML = '';
+
+            // Also render the time scale
+            renderTimeScale();
 
             // Get cards that haven't been placed (excluding fixed endpoints)
             const availableIndices = [];
