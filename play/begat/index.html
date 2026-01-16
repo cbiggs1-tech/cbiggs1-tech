@@ -2382,18 +2382,19 @@
             gameState.draggedCard = parseInt(card.dataset.index);
             isTouchDragging = false;
 
-            // Show tooltip immediately on touch (200ms delay per user request)
+            // Show tooltip quickly on touch (before drag starts at 150ms)
             const personIndex = parseInt(card.dataset.index);
-            setTimeout(() => {
+            const tooltipTimer = setTimeout(() => {
                 if (!isTouchDragging) { // Only show if not already dragging
                     showDateTooltip(card, personIndex, touch.clientX, touch.clientY);
                 }
-            }, 200);
+            }, 50); // Show tooltip after 50ms
 
-            // Delay clone creation to distinguish tap from drag
+            // Delay clone creation to distinguish tap from drag (starts at 150ms)
             card.touchTimeout = setTimeout(() => {
                 isTouchDragging = true;
                 // Hide tooltip when drag actually starts
+                clearTimeout(tooltipTimer);
                 hideDateTooltip();
                 // Create visual clone
                 touchClone = card.cloneNode(true);
