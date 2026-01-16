@@ -12,6 +12,47 @@
 'use strict';
 
 // ==============================================
+// STORAGE FALLBACK (localStorage quota handling)
+// ==============================================
+
+/**
+ * In-memory storage fallback when localStorage is unavailable or full.
+ */
+const memoryStorage = new Map();
+
+/**
+ * Safe localStorage wrapper with quota error handling.
+ * Falls back to in-memory storage when localStorage fails.
+ */
+const storage = {
+    getItem(key) {
+        try {
+            return localStorage.getItem(key);
+        } catch (e) {
+            console.warn('localStorage read failed, using memory fallback:', e);
+            return memoryStorage.get(key) || null;
+        }
+    },
+    setItem(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {
+            // Handle QuotaExceededError and other storage errors
+            console.warn('localStorage write failed, using memory fallback:', e);
+            memoryStorage.set(key, value);
+        }
+    },
+    removeItem(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.warn('localStorage remove failed:', e);
+            memoryStorage.delete(key);
+        }
+    }
+};
+
+// ==============================================
 // GAME DATA - Genealogy and Level Configuration
 // ==============================================
 
@@ -285,9 +326,14 @@ function formatTime(seconds) {
  */
 function getHighScores(levelIndex) {
     const key = `begat_highscores_level_${levelIndex}`;
-    const stored = localStorage.getItem(key);
+    const stored = storage.getItem(key);
     if (stored) {
-        return JSON.parse(stored);
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.warn('Failed to parse high scores:', e);
+            return [];
+        }
     }
     return [];
 }
@@ -299,7 +345,7 @@ function getHighScores(levelIndex) {
  */
 function saveHighScores(levelIndex, scores) {
     const key = `begat_highscores_level_${levelIndex}`;
-    localStorage.setItem(key, JSON.stringify(scores));
+    storage.setItem(key, JSON.stringify(scores));
 }
 
 /**
@@ -1528,20 +1574,24 @@ function saveProgress() {
     const saveData = {
         score: gameState.score,
         stars: gameState.stars,
-        highScore: Math.max(gameState.score, parseInt(localStorage.getItem('begat_highscore') || '0'))
+        highScore: Math.max(gameState.score, parseInt(storage.getItem('begat_highscore') || '0'))
     };
-    localStorage.setItem('begat_progress', JSON.stringify(saveData));
-    localStorage.setItem('begat_highscore', saveData.highScore.toString());
+    storage.setItem('begat_progress', JSON.stringify(saveData));
+    storage.setItem('begat_highscore', saveData.highScore.toString());
 }
 
 /**
  * Load progress from localStorage.
  */
 function loadProgress() {
-    const saved = localStorage.getItem('begat_progress');
+    const saved = storage.getItem('begat_progress');
     if (saved) {
-        const data = JSON.parse(saved);
-        gameState.stars = data.stars || 0;
+        try {
+            const data = JSON.parse(saved);
+            gameState.stars = data.stars || 0;
+        } catch (e) {
+            console.warn('Failed to parse saved progress:', e);
+        }
     }
 }
 
@@ -2062,3 +2112,29 @@ document.addEventListener('touchend', (e) => {
     }
     window.lastTouchEnd = now;
 }, { passive: false });
+
+// ==============================================
+// EXPORTS FOR TESTING (ES Module)
+// ==============================================
+
+/**
+ * Export core functions and data for unit testing.
+ * These are also available via window.__test_* for legacy test runners.
+ */
+export {
+    genealogy,
+    levels,
+    gameState,
+    LEVEL_POINTS,
+    TIER_MULTIPLIERS,
+    getLevelPoints,
+    getLevelMaxScore,
+    getTierMultiplier,
+    getSpeedBonus,
+    formatTime,
+    getHighScores,
+    saveHighScores,
+    isHighScore,
+    addHighScore,
+    storage
+};

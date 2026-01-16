@@ -6,6 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self'; connect-src 'self' https://www.google-analytics.com; font-src 'self';">
     <title>Begat - The Lineage Game</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-V5C44LTNXZ"></script>
@@ -35,7 +36,7 @@
 
     <div class="stars" id="stars"></div>
 
-    <a href="../../games.html" class="home-btn" title="Back to Games">ESC</a>
+    <a href="../../games.html" class="home-btn" title="Back to Games" role="button" aria-label="Back to Games (Escape key)">ESC</a>
 
     <header class="header">
         <h1>BEGAT</h1>
@@ -60,7 +61,7 @@
         </div>
     </main>
 
-    <button class="menu-btn" id="menuBtn">&#9776;</button>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-haspopup="dialog">&#9776;</button>
 
     <div class="hint-display" id="hintDisplay"></div>
 
@@ -70,7 +71,7 @@
         <span class="tooltip-note">Approximate era based on biblical chronologies.</span>
     </div>
 
-    <div class="modal-overlay" id="quizModal">
+    <div class="modal-overlay" id="quizModal" role="dialog" aria-modal="true" aria-labelledby="quizHeader">
         <div class="quiz-modal">
             <div class="quiz-header">
                 <h2>Unlock This Ancestor</h2>
@@ -82,9 +83,9 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="menuModal">
+    <div class="modal-overlay" id="menuModal" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
         <div class="menu-modal">
-            <h2 class="menu-title">Menu</h2>
+            <h2 class="menu-title" id="menuTitle">Menu</h2>
             <div class="menu-options">
                 <button class="menu-option" id="howToPlayBtn">How to Play</button>
                 <button class="menu-option" id="newGameBtn">New Game</button>
@@ -105,9 +106,9 @@
         </div>
     </div>
 
-    <div class="modal-overlay" id="winModal">
+    <div class="modal-overlay" id="winModal" role="dialog" aria-modal="true" aria-labelledby="winTitle">
         <div class="win-modal">
-            <h2 class="win-title">Behold the Lineage!</h2>
+            <h2 class="win-title" id="winTitle">Behold the Lineage!</h2>
             <p class="win-subtitle">You've connected the generations from Abraham to Jesus!</p>
             <p class="win-score" id="finalScore">Final Score: 0</p>
 
@@ -142,17 +143,17 @@
     </div>
 
     <!-- Background Music - Start Screen -->
-    <audio id="startMusic" loop>
+    <audio id="startMusic" loop preload="none">
         <source src="../../music/Lineage.mp3" type="audio/mpeg">
     </audio>
     <!-- Background Music - Gameplay -->
-    <audio id="gameMusic" loop>
+    <audio id="gameMusic" loop preload="none">
         <source src="../../music/Ancestry.mp3" type="audio/mpeg">
     </audio>
-    <button id="musicToggle" class="music-btn">MUSIC: ON</button>
+    <button id="musicToggle" class="music-btn" aria-label="Toggle music" aria-pressed="true">MUSIC: ON</button>
 
     <!-- Share Button -->
-    <button class="share-btn" id="shareBtn" title="Share Screenshot">&#128247;</button>
+    <button class="share-btn" id="shareBtn" title="Share Screenshot" aria-label="Share screenshot">&#128247;</button>
 
     <!-- Share Modal -->
     <div class="modal-overlay" id="shareModal">
@@ -173,6 +174,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- Game Logic -->
-    <script src="js/begat.js"></script>
+    <script type="module" src="js/begat.js"></script>
 </body>
 </html>

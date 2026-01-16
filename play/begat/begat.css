@@ -1492,3 +1492,45 @@ body.colorblind {
     outline: 3px solid var(--gold);
     outline-offset: 2px;
 }
+
+/* Keyboard drag mode indicator */
+.card.dragging {
+    outline: 3px dashed var(--gold);
+    outline-offset: 4px;
+    animation: keyboard-drag-pulse 1s ease-in-out infinite;
+}
+
+@keyframes keyboard-drag-pulse {
+    0%, 100% { box-shadow: 0 0 10px var(--gold-glow); }
+    50% { box-shadow: 0 0 25px var(--gold-glow); }
+}
+
+/* Skip to main content link (screen readers) */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--gold);
+    color: var(--ink);
+    padding: 8px 16px;
+    z-index: 9999;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .star,
+    .card,
+    .timeline-slot,
+    .quiz-option,
+    .timer-display.warning,
+    .quiz-option.assisted-highlight {
+        animation: none !important;
+        transition: none !important;
+    }
+}
