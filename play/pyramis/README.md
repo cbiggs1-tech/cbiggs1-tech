@@ -1,66 +1,74 @@
 # Pyramis
 
-Ancient Egyptian-themed pyramid solitaire card game. Pair cards to sum 14 (or 15 on Hard mode), with Aces & Kings wild.
+A relaxing pyramid solitaire card game with an Egyptian/desert theme.
 
-## Status
-- Phase 1: Deck, shuffle, deal, pyramid exposure
-- Phase 2: Pairing, wilds, waste, draws, simulation (console-based)
-- Phase 3: Browser UI with pyramid display, click-to-pair, mobile-friendly
-- Phase 4: Egyptian theme, scoring system, undo, difficulty modes, animations, PWA
+## Features
+
+- **Pyramid Solitaire Gameplay**: Clear 28 cards by pairing exposed cards that sum to 14
+- **Wild Cards**: Aces (1) and Kings (13) pair with any card
+- **Difficulty Modes**: Easy (20 draws), Medium (15 draws), Hard (10 draws with random target)
+- **Scoring System**: 50 points per pair + chain bonuses + streak multipliers
+- **Undo Feature**: 5-move undo stack
+- **Statistics Tracking**: Win/loss record, best score, total games
+- **PWA Support**: Installable as an app, works offline
+- **Mobile-Friendly**: Touch controls and responsive design
+- **First-Play Tutorial**: Quick rules modal for new players
+- **Win Celebration**: Confetti animation on victory
 
 ## How to Play
-1. Open `index.html` in browser
-2. Select difficulty mode (Easy/Medium/Hard)
-3. Click exposed pyramid cards or waste card to select
-4. Click a second card to pair (must sum to target or include Ace/King wild)
-5. Click Draw to flip stock card to waste
-6. Clear all pyramid cards to win!
 
-## Rules
-- **Easy Mode**: 20 draws, sum to 14
-- **Medium Mode**: 15 draws, sum to 14
-- **Hard Mode**: 10 draws, sum to 15
-- Aces (1) and Kings (13) are wild - pair with any card
-- Only exposed pyramid cards (no cards covering them) can be selected
+1. Tap two exposed cards that sum to 14 (e.g., 6 + 8, 7 + 7)
+2. Aces and Kings are wild - pair with anything
+3. Use the Draw button to flip stock cards when stuck
+4. Clear all 28 pyramid cards to win!
 
-## Scoring System
+## Game Modes
+
+| Mode   | Draws | Target Sum  | Win Rate |
+|--------|-------|-------------|----------|
+| Easy   | 20    | 13-15       | ~60%     |
+| Medium | 15    | 14          | ~30-40%  |
+| Hard   | 10    | Random 12-15| ~15%     |
+
+## Scoring
+
 - Base pair: 50 points
 - Chain bonus: +100 points for consecutive pairs without drawing
 - Streak multiplier: x2 after 5 consecutive chains
 
-## Features
-- 𓂀 Egyptian/desert theme with hieroglyph suits (☥ 𓆣 𓋾 𓂀)
-- 🎵 Background music with toggle
-- 🔊 Sound effects (draw, pair, invalid, win)
-- ↩️ Undo feature (5-move stack)
-- 📱 Mobile-friendly responsive design
-- 💾 Settings persist via localStorage
-- 🏆 Win overlay with score breakdown
+## Tech Stack
+
+- Vanilla HTML/CSS/JavaScript
+- No frameworks or dependencies
+- Service Worker for offline support
+- LocalStorage for game state persistence
 
 ## File Structure
+
 ```
 pyramis/
 ├── index.html          # Main game page
+├── readme.html         # In-game help page
 ├── manifest.json       # PWA manifest
+├── sw.js               # Service worker
 ├── README.md
 ├── js/
-│   └── pyramis.js      # Game logic (~1340 lines)
+│   └── pyramis.js      # Game logic
 ├── audio/
 │   ├── pyramis.mp3     # Background music
 │   ├── win.mp3         # Victory sound
 │   ├── pair.mp3        # Card pair sound
 │   ├── draw.mp3        # Card draw sound
 │   └── Invalid.mp3     # Invalid move sound
-└── icons/              # PWA icons (need to add)
-    ├── icon-72.png
-    ├── icon-96.png
-    ├── icon-128.png
-    ├── icon-144.png
-    ├── icon-152.png
-    ├── icon-192.png
-    ├── icon-384.png
-    └── icon-512.png
+└── icons/              # PWA icons
 ```
 
-## PWA Installation
-The game can be installed as a Progressive Web App. Add icon images to the `icons/` folder in the required sizes for full PWA support.
+## Credits
+
+- Developed by Curtis Biggs ([@Cbiggs90](https://x.com/cbiggs90))
+- Audio generated with Suno.ai
+- Part of [GRANDPAPA.NET](https://grandpapa.net)
+
+## License
+
+MIT License

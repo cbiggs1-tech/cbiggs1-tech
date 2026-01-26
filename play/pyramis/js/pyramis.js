@@ -8,7 +8,26 @@
 // - Difficulty modes (Easy/Medium/Hard)
 // - Animations and win overlay
 // - PHASE 5: Game state persistence & stats tracking
+// - QUALITY BOOST: Debug logging, tutorial, confetti, validation
 // ==============================================
+
+// ==============================================
+// QUALITY BOOST: DEBUG FLAG
+// ==============================================
+// Only enable debug logging on localhost/dev environments
+const DEBUG = window.location.hostname.includes('localhost') ||
+              window.location.hostname.includes('127.0.0.1') ||
+              window.location.hostname === '';
+
+/**
+ * QUALITY BOOST: Conditional debug logging
+ * @param {...any} args - Arguments to log
+ */
+function debugLog(...args) {
+    if (DEBUG) {
+        console.log(...args);
+    }
+}
 
 // ==============================================
 // CARD CREATION
@@ -416,8 +435,81 @@ function saveGameState() {
     try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(state));
     } catch (e) {
-        console.log('[PHASE 5] Save failed:', e.message);
+        debugLog('[PHASE 5] Save failed:', e.message);
     }
+}
+
+/**
+ * QUALITY BOOST: Validates a saved game state object.
+ * Checks pyramid length, valid ranks/suits, and required fields.
+ * @param {Object} state - Saved state object to validate
+ * @returns {boolean} True if state is valid
+ */
+function validateSavedState(state) {
+    const validSuits = ['hearts', 'diamonds', 'clubs', 'spades'];
+
+    // Check required fields exist
+    if (!state || !state.pyramid || !state.stock) {
+        return false;
+    }
+    if (state.drawsLeft === undefined) {
+        return false;
+    }
+
+    // QUALITY BOOST: Validate pyramid has exactly 28 cards
+    if (!Array.isArray(state.pyramid) || state.pyramid.length !== 28) {
+        debugLog('[QUALITY BOOST] Invalid pyramid length:', state.pyramid?.length);
+        return false;
+    }
+
+    // QUALITY BOOST: Validate each pyramid card (or null for removed)
+    for (let i = 0; i < state.pyramid.length; i++) {
+        const card = state.pyramid[i];
+        if (card !== null) {
+            if (!card.suit || !validSuits.includes(card.suit)) {
+                debugLog('[QUALITY BOOST] Invalid suit at index', i, card);
+                return false;
+            }
+            if (typeof card.rank !== 'number' || card.rank < 1 || card.rank > 13) {
+                debugLog('[QUALITY BOOST] Invalid rank at index', i, card);
+                return false;
+            }
+        }
+    }
+
+    // QUALITY BOOST: Validate stock cards
+    if (!Array.isArray(state.stock)) {
+        return false;
+    }
+    for (const card of state.stock) {
+        if (!card.suit || !validSuits.includes(card.suit)) {
+            return false;
+        }
+        if (typeof card.rank !== 'number' || card.rank < 1 || card.rank > 13) {
+            return false;
+        }
+    }
+
+    // QUALITY BOOST: Validate waste if present
+    if (state.waste !== null && state.waste !== undefined) {
+        if (!state.waste.suit || !validSuits.includes(state.waste.suit)) {
+            return false;
+        }
+        if (typeof state.waste.rank !== 'number' || state.waste.rank < 1 || state.waste.rank > 13) {
+            return false;
+        }
+    }
+
+    // QUALITY BOOST: Validate removedSet indices
+    if (state.removedSet && Array.isArray(state.removedSet)) {
+        for (const idx of state.removedSet) {
+            if (typeof idx !== 'number' || idx < 0 || idx >= 28) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -431,8 +523,10 @@ function loadGameState() {
 
         const state = JSON.parse(saved);
 
-        // Validate saved state has required fields
-        if (!state.pyramid || !state.stock || state.drawsLeft === undefined) {
+        // QUALITY BOOST: Enhanced state validation
+        if (!validateSavedState(state)) {
+            debugLog('[QUALITY BOOST] Invalid saved state, starting fresh');
+            clearSavedGameState();
             return false;
         }
 
@@ -459,10 +553,10 @@ function loadGameState() {
         undoStack = [];
         gameInProgress = true;
 
-        console.log('[PHASE 5] Game restored from save');
+        debugLog('[PHASE 5] Game restored from save');
         return true;
     } catch (e) {
-        console.log('[PHASE 5] Load failed:', e.message);
+        debugLog('[PHASE 5] Load failed:', e.message);
         return false;
     }
 }
@@ -474,7 +568,7 @@ function clearSavedGameState() {
     try {
         localStorage.removeItem(SAVE_KEY);
     } catch (e) {
-        console.log('[PHASE 5] Clear save failed:', e.message);
+        debugLog('[PHASE 5] Clear save failed:', e.message);
     }
 }
 
@@ -495,7 +589,7 @@ function getStats() {
             return JSON.parse(saved);
         }
     } catch (e) {
-        console.log('[PHASE 5] Stats load failed:', e.message);
+        debugLog('[PHASE 5] Stats load failed:', e.message);
     }
     return {
         wins: 0,
@@ -513,7 +607,7 @@ function saveStats(stats) {
     try {
         localStorage.setItem(STATS_KEY, JSON.stringify(stats));
     } catch (e) {
-        console.log('[PHASE 5] Stats save failed:', e.message);
+        debugLog('[PHASE 5] Stats save failed:', e.message);
     }
 }
 
@@ -885,7 +979,7 @@ function playSFX(name) {
     if (sound) {
         sound.currentTime = 0;
         sound.play().catch(err => {
-            console.log(`[SFX] ${name} play failed:`, err.message);
+            debugLog(`[SFX] ${name} play failed:`, err.message);
         });
     }
 }
@@ -919,7 +1013,7 @@ function playBGM() {
             }
         }, stepDuration);
     }).catch(err => {
-        console.log('[BGM] Play failed:', err.message);
+        debugLog('[BGM] Play failed:', err.message);
     });
 }
 
@@ -1255,6 +1349,8 @@ function showWinOverlay() {
 
     overlay.classList.add('show');
     playSFX('win');
+    // QUALITY BOOST: Trigger confetti celebration
+    triggerConfetti();
 }
 
 /**
@@ -1522,7 +1618,7 @@ function handleGameClick(e) {
 
     // MOBILE FIXES - Debug logging for touch events
     if (e.type === 'touchend') {
-        console.log('[MOBILE] Touch detected on card:', cardEl.dataset.index || cardEl.dataset.source);
+        debugLog('[MOBILE] Touch detected on card:', cardEl.dataset.index || cardEl.dataset.source);
     }
 
     if (cardEl.classList.contains('removed') || cardEl.classList.contains('empty')) {
@@ -1579,7 +1675,7 @@ function initUI() {
             // MOBILE FIXES - Skip click if touch already handled it
             if (touchHandled) {
                 touchHandled = false;
-                console.log('[MOBILE] Skipping click - touch already handled');
+                debugLog('[MOBILE] Skipping click - touch already handled');
                 return;
             }
             handleGameClick(e);
@@ -1595,13 +1691,13 @@ function initUI() {
             const element = document.elementFromPoint(touch.clientX, touch.clientY);
             const cardEl = element ? element.closest('.card') : null;
 
-            console.log('[MOBILE] touchend at', touch.clientX, touch.clientY, 'element:', element?.className);
+            debugLog('[MOBILE] touchend at', touch.clientX, touch.clientY, 'element:', element?.className);
 
             if (cardEl) {
                 e.preventDefault(); // Prevent ghost click
                 touchHandled = true; // Flag to skip subsequent click event
 
-                console.log('[MOBILE] Card touched:', cardEl.dataset.index || cardEl.dataset.source);
+                debugLog('[MOBILE] Card touched:', cardEl.dataset.index || cardEl.dataset.source);
 
                 // Create a synthetic event-like object for handleGameClick
                 const syntheticEvent = {
@@ -1664,8 +1760,110 @@ function initUI() {
     // PHASE 5: Register service worker
     registerServiceWorker();
 
-    console.log('[initUI] Pyramis initialized');
-    console.log(getCurrentStateSummary());
+    // QUALITY BOOST: Initialize tutorial for first-time players
+    initTutorial();
+
+    debugLog('[initUI] Pyramis initialized');
+    debugLog(getCurrentStateSummary());
+}
+
+// ==============================================
+// QUALITY BOOST: TUTORIAL MODAL
+// ==============================================
+
+const TUTORIAL_KEY = 'pyramis-tutorial-seen';
+
+/**
+ * QUALITY BOOST: Checks if tutorial should be shown.
+ * @returns {boolean} True if tutorial has not been seen
+ */
+function shouldShowTutorial() {
+    return localStorage.getItem(TUTORIAL_KEY) !== 'true';
+}
+
+/**
+ * QUALITY BOOST: Marks tutorial as seen.
+ */
+function markTutorialSeen() {
+    localStorage.setItem(TUTORIAL_KEY, 'true');
+}
+
+/**
+ * QUALITY BOOST: Shows the first-play tutorial modal.
+ */
+function showTutorial() {
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+/**
+ * QUALITY BOOST: Hides the tutorial modal.
+ */
+function hideTutorial() {
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    markTutorialSeen();
+}
+
+/**
+ * QUALITY BOOST: Initializes tutorial modal and event handlers.
+ */
+function initTutorial() {
+    const gotItBtn = document.getElementById('tutorial-got-it');
+    if (gotItBtn) {
+        gotItBtn.addEventListener('click', hideTutorial);
+        gotItBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            hideTutorial();
+        }, { passive: false });
+    }
+
+    // Show tutorial on first visit
+    if (shouldShowTutorial()) {
+        setTimeout(() => showTutorial(), 500);
+    }
+}
+
+// ==============================================
+// QUALITY BOOST: WIN CELEBRATION (CONFETTI)
+// ==============================================
+
+let confettiContainer = null;
+
+/**
+ * QUALITY BOOST: Creates and triggers confetti celebration.
+ */
+function triggerConfetti() {
+    confettiContainer = document.getElementById('confetti-container');
+    if (!confettiContainer) return;
+
+    confettiContainer.innerHTML = '';
+    confettiContainer.classList.add('active');
+
+    const colors = ['#FFD700', '#FFA500', '#FF6347', '#32CD32', '#1E90FF', '#FF69B4'];
+    const confettiCount = 50;
+
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 2 + 's';
+        confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+        confettiContainer.appendChild(confetti);
+    }
+
+    // Clean up after animation
+    setTimeout(() => {
+        if (confettiContainer) {
+            confettiContainer.classList.remove('active');
+            confettiContainer.innerHTML = '';
+        }
+    }, 5000);
 }
 
 // ==============================================
@@ -1679,10 +1877,10 @@ function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js')
             .then(reg => {
-                console.log('[PHASE 5] Service worker registered:', reg.scope);
+                debugLog('[PHASE 5] Service worker registered:', reg.scope);
             })
             .catch(err => {
-                console.log('[PHASE 5] Service worker registration failed:', err.message);
+                debugLog('[PHASE 5] Service worker registration failed:', err.message);
             });
     }
 }
