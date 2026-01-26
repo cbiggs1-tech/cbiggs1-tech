@@ -1622,24 +1622,41 @@ function initUI() {
         }, { passive: true });
     }
 
+    // MOBILE FIXES - Add both click and touch handlers for buttons
     const drawBtn = document.getElementById('draw-btn');
     if (drawBtn) {
         drawBtn.addEventListener('click', handleDraw);
+        drawBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleDraw();
+        }, { passive: false });
     }
 
     const newGameBtn = document.getElementById('new-game-btn');
     if (newGameBtn) {
         newGameBtn.addEventListener('click', handleNewGame);
+        newGameBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleNewGame();
+        }, { passive: false });
     }
 
     const undoBtn = document.getElementById('undo-btn');
     if (undoBtn) {
         undoBtn.addEventListener('click', handleUndo);
+        undoBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleUndo();
+        }, { passive: false });
     }
 
     const playAgainBtn = document.getElementById('play-again-btn');
     if (playAgainBtn) {
         playAgainBtn.addEventListener('click', handleNewGame);
+        playAgainBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleNewGame();
+        }, { passive: false });
     }
 
     updateUI();
