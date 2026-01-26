@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pyramis</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#8B4513">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Papyrus', 'Copperplate', Georgia, serif;
+      background: linear-gradient(180deg,
+        #87CEEB 0%,
+        #F4A460 30%,
+        #DEB887 50%,
+        #D2691E 70%,
+        #8B4513 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #FFD700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
+      margin: 0 0 15px 0;
+      font-size: 2.5rem;
+      letter-spacing: 4px;
+    }
+
+    #game-container {
+      max-width: 700px;
+      width: 100%;
+    }
+
+    /* Score and Controls Bar */
+    #top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: rgba(139, 69, 19, 0.6);
+      border-radius: 8px;
+      border: 2px solid #FFD700;
+    }
+
+    #score-display {
+      color: #FFD700;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    #difficulty-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #difficulty-container label {
+      color: #FFD700;
+      font-size: 0.9rem;
+    }
+
+    #difficulty-select {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      border: 2px solid #FFD700;
+      border-radius: 6px;
+      background: #8B4513;
+      color: #FFD700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    #difficulty-select:hover {
+      background: #A0522D;
+    }
+
+    /* Pyramid Section */
+    #pyramid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .pyramid-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 5px;
+    }
+
+    /* Card Styles - Parchment Theme */
+    /* CARD SYMBOL FIX - Standard playing card display */
+    .card {
+      width: 50px;
+      height: 70px;
+      background: linear-gradient(135deg, #FFF8DC 0%, #F5DEB3 50%, #DEB887 100%);
+      border: 2px solid #8B4513;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      margin: 0 3px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(139, 69, 19, 0.1);
+      transition: transform 0.15s, box-shadow 0.15s;
+      user-select: none;
+      position: relative;
+      line-height: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(139, 69, 19, 0.1);
+    }
+
+    /* CARD SYMBOL FIX - Standard playing card suit colors */
+    .card.hearts, .card.diamonds {
+      color: #C41E3A;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+
+    .card.clubs, .card.spades {
+      color: #000000;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+
+    .card.facedown {
+      background: linear-gradient(135deg, #8B4513 0%, #654321 50%, #3E2723 100%);
+      color: #FFD700;
+      cursor: default;
+      border-color: #FFD700;
+      font-size: 1.5rem;
+    }
+
+    .card.facedown::before {
+      content: '🂠';
+    }
+
+    .card.facedown:hover {
+      transform: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .card.removed {
+      visibility: hidden;
+    }
+
+    .card.selected {
+      outline: 3px solid #FFD700;
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(255, 215, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .card.wild {
+      background: linear-gradient(135deg, #FFF8DC 0%, #FFFACD 50%, #FFE4B5 100%);
+      border-color: #FFD700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.5), inset 0 0 10px rgba(255, 215, 0, 0.2);
+    }
+
+    .card.wild.selected {
+      box-shadow: 0 6px 12px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+
+    /* Pair animation */
+    .card.pairing {
+      animation: pairGlow 0.4s ease-out;
+    }
+
+    @keyframes pairGlow {
+      0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.5); transform: scale(1.1); }
+      100% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); opacity: 0; transform: scale(0.8) translateY(-20px); }
+    }
+
+    /* Draw flip animation */
+    .card.flipping {
+      animation: cardFlip 0.3s ease-out;
+    }
+
+    @keyframes cardFlip {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(90deg); }
+      100% { transform: rotateY(0deg); }
+    }
+
+    /* Stock and Waste Section */
+    #stock-waste {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+
+    .pile-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pile-label {
+      color: #FFD700;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    #stock {
+      position: relative;
+    }
+
+    #stock .card {
+      background: linear-gradient(135deg, #8B4513 0%, #654321 50%, #3E2723 100%);
+      border-color: #FFD700;
+      color: #FFD700;
+    }
+
+    #stock .card.empty {
+      background: rgba(139, 69, 19, 0.3);
+      border: 2px dashed rgba(255, 215, 0, 0.4);
+      cursor: default;
+    }
+
+    #stock .card.empty:hover {
+      transform: none;
+    }
+
+    .stock-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #FFD700;
+      color: #8B4513;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    #waste .card.empty {
+      background: rgba(139, 69, 19, 0.3);
+      border: 2px dashed rgba(255, 215, 0, 0.4);
+      cursor: default;
+    }
+
+    #waste .card.empty:hover {
+      transform: none;
+    }
+
+    /* Status Bar */
+    #status {
+      background: rgba(139, 69, 19, 0.7);
+      color: #FFD700;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1rem;
+      border: 2px solid #FFD700;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    #status.win {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      color: #8B4513;
+      font-weight: bold;
+      text-shadow: none;
+    }
+
+    #status.lose {
+      background: #8B0000;
+      font-weight: bold;
+    }
+
+    /* Feedback Message */
+    #feedback {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 100;
+      border: 2px solid;
+    }
+
+    #feedback.show {
+      opacity: 1;
+    }
+
+    #feedback.success {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      color: #8B4513;
+      border-color: #8B4513;
+    }
+
+    #feedback.error {
+      background: #8B0000;
+      color: #FFD700;
+      border-color: #FFD700;
+    }
+
+    #feedback.info {
+      background: rgba(139, 69, 19, 0.9);
+      color: #FFD700;
+      border-color: #FFD700;
+    }
+
+    /* Buttons */
+    #controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      border: 2px solid #FFD700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    #new-game-btn {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      color: #8B4513;
+    }
+
+    #draw-btn {
+      background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+      color: #FFD700;
+    }
+
+    #draw-btn:disabled {
+      background: #666;
+      border-color: #888;
+      color: #aaa;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    #undo-btn {
+      background: linear-gradient(135deg, #654321 0%, #8B4513 100%);
+      color: #FFD700;
+    }
+
+    #undo-btn:disabled {
+      background: #666;
+      border-color: #888;
+      color: #aaa;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .undo-badge {
+      display: inline-block;
+      background: #FFD700;
+      color: #8B4513;
+      font-size: 0.7rem;
+      padding: 1px 5px;
+      border-radius: 8px;
+      margin-left: 5px;
+    }
+
+    /* Audio Controls - Compact */
+    #audio-controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    .audio-panel {
+      display: flex;
+      gap: 4px;
+      background: rgba(139, 69, 19, 0.5);
+      border-radius: 6px;
+      padding: 4px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .audio-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: rgba(0, 0, 0, 0.2);
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.15s;
+    }
+
+    .audio-btn:hover {
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .audio-btn.active {
+      background: rgba(255, 215, 0, 0.3);
+    }
+
+    .audio-btn.muted {
+      opacity: 0.5;
+    }
+
+    /* Win Overlay Modal */
+    #win-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #win-overlay.show {
+      display: flex;
+    }
+
+    .win-modal {
+      background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+      border: 4px solid #FFD700;
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+      animation: modalAppear 0.5s ease-out;
+    }
+
+    @keyframes modalAppear {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .win-modal h2 {
+      color: #FFD700;
+      font-size: 2.5rem;
+      margin: 0 0 10px 0;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .win-modal .pharaoh-icon {
+      font-size: 4rem;
+      margin: 15px 0;
+    }
+
+    .win-modal .final-score {
+      color: #FFD700;
+      font-size: 1.8rem;
+      margin: 20px 0;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .win-modal .score-breakdown {
+      color: #DEB887;
+      font-size: 1rem;
+      margin: 15px 0;
+      line-height: 1.6;
+    }
+
+    .win-modal button {
+      margin-top: 20px;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 500px) {
+      body {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+      }
+
+      #top-bar {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      /* CARD SYMBOL FIX - Responsive card sizing */
+      .card {
+        width: 40px;
+        height: 56px;
+        font-size: 0.75rem;
+        margin: 0 2px;
+      }
+
+      .card.facedown {
+        font-size: 1.2rem;
+      }
+
+      #stock-waste {
+        gap: 20px;
+      }
+
+      button {
+        padding: 10px 18px;
+        font-size: 0.9rem;
+      }
+
+      #controls {
+        gap: 10px;
+      }
+
+      .win-modal {
+        padding: 25px;
+      }
+
+      .win-modal h2 {
+        font-size: 1.8rem;
+      }
+
+      .win-modal .pharaoh-icon {
+        font-size: 3rem;
+      }
+    }
+
+    /* CARD SYMBOL FIX - Extra small screens */
+    @media (max-width: 400px) {
+      .card {
+        width: 36px;
+        height: 50px;
+        font-size: 0.7rem;
+      }
+
+      .card.facedown {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>𓋹 PYRAMIS 𓋹</h1>
+
+  <div id="game-container">
+    <div id="top-bar">
+      <div id="score-display">Score: <span id="score-value">0</span></div>
+      <div id="difficulty-container">
+        <label for="difficulty-select">Mode:</label>
+        <select id="difficulty-select">
+          <option value="easy">Easy (20 draws)</option>
+          <option value="medium" selected>Medium (15 draws)</option>
+          <option value="hard">Hard (10 draws, sum 15)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="pyramid"></div>
+
+    <div id="stock-waste">
+      <div class="pile-container">
+        <span class="pile-label">Stock</span>
+        <div id="stock"></div>
+      </div>
+      <div class="pile-container">
+        <span class="pile-label">Waste</span>
+        <div id="waste"></div>
+      </div>
+    </div>
+
+    <div id="status">Loading...</div>
+
+    <div id="controls">
+      <button id="new-game-btn">New Game</button>
+      <button id="undo-btn" disabled>Undo <span class="undo-badge" id="undo-count">0</span></button>
+      <button id="draw-btn">Draw</button>
+    </div>
+
+  </div>
+
+  <div id="audio-controls">
+    <div class="audio-panel">
+      <button class="audio-btn" id="sfxToggle" title="Sound Effects">🔊</button>
+      <button class="audio-btn" id="bgmToggle" title="Background Music">🎵</button>
+    </div>
+  </div>
+
+  <div id="feedback"></div>
+
+  <!-- Win Overlay Modal -->
+  <div id="win-overlay">
+    <div class="win-modal">
+      <h2>𓂀 VICTORY! 𓂀</h2>
+      <div class="pharaoh-icon">🏆</div>
+      <div class="final-score">Final Score: <span id="final-score-value">0</span></div>
+      <div class="score-breakdown" id="score-breakdown"></div>
+      <button id="play-again-btn">Play Again</button>
+    </div>
+  </div>
+
+  <script src="js/pyramis.js"></script>
+</body>
+</html>
