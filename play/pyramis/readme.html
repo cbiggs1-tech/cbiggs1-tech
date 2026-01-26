@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Play - Pyramis</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Papyrus', 'Copperplate', Georgia, serif;
+      background: linear-gradient(180deg,
+        #87CEEB 0%,
+        #F4A460 30%,
+        #DEB887 50%,
+        #D2691E 70%,
+        #8B4513 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      color: #FFF8DC;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(139, 69, 19, 0.85);
+      border: 3px solid #FFD700;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      color: #FFD700;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      margin-top: 0;
+      font-size: 2rem;
+    }
+
+    h2 {
+      color: #FFD700;
+      border-bottom: 2px solid #FFD700;
+      padding-bottom: 8px;
+      margin-top: 30px;
+      font-size: 1.4rem;
+    }
+
+    h3 {
+      color: #FFA500;
+      margin-top: 20px;
+      font-size: 1.1rem;
+    }
+
+    p, li {
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    ul, ol {
+      padding-left: 25px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      color: #FFD700;
+      font-weight: bold;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+      color: #8B4513;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      border: 2px solid #FFD700;
+      transition: transform 0.15s;
+    }
+
+    .back-link:hover {
+      transform: translateY(-2px);
+    }
+
+    .stats-box {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid #FFD700;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .stats-box p {
+      margin: 5px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+    }
+
+    th, td {
+      border: 1px solid #FFD700;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255, 215, 0, 0.2);
+      color: #FFD700;
+    }
+
+    .tip-box {
+      background: rgba(255, 215, 0, 0.1);
+      border-left: 4px solid #FFD700;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">&larr; Back to Game</a>
+
+    <h1>Pyramis - Pyramid Solitaire</h1>
+
+    <p>Pyramis is a relaxing, single-player card game inspired by classic Pyramid Solitaire. Clear the pyramid by pairing exposed cards that sum to 14, with Aces and Kings as wild cards (pair with anything). Perfect for short sessions while watching TV!</p>
+
+    <div class="stats-box">
+      <p><span class="highlight">Win Rate:</span> ~30-40% with skill (Medium mode)</p>
+      <p><span class="highlight">Game Length:</span> 2-10 minutes</p>
+      <p><span class="highlight">Mobile-Friendly:</span> Tap to play on phone/tablet</p>
+      <p><span class="highlight">Offline & Installable:</span> Add to home screen as an app</p>
+    </div>
+
+    <h2>How to Play</h2>
+
+    <h3>Setup</h3>
+    <ul>
+      <li>A pyramid of 28 cards is dealt in 7 rows (1 card on top, 7 at bottom).</li>
+      <li>The bottom row (7 cards) starts exposed (playable).</li>
+      <li>Remaining 24 cards form the stock pile.</li>
+    </ul>
+
+    <h3>Core Mechanics</h3>
+    <ul>
+      <li><span class="highlight">Pair Cards:</span> Tap two exposed cards that sum to 14:
+        <ul>
+          <li>Examples: 6 + 8 = 14, 7 + 7 = 14</li>
+        </ul>
+      </li>
+      <li><span class="highlight">Wild Cards:</span> Aces (1) and Kings (13) pair with anything (even each other).</li>
+      <li>Paired cards vanish, exposing cards above them (both covering cards must be removed).</li>
+      <li><span class="highlight">Draw:</span> Tap "Draw" to flip the top stock card to the Next pile (top card visible/usable). Max 15 draws (Medium mode).</li>
+      <li><span class="highlight">Win:</span> Clear the entire pyramid (all 28 cards = 14 pairs).</li>
+      <li><span class="highlight">Lose:</span> No valid pairs and draws exhausted.</li>
+    </ul>
+
+    <h3>Controls</h3>
+    <ul>
+      <li>Tap exposed card &rarr; Select (highlights yellow)</li>
+      <li>Tap second exposed card or Next pile &rarr; Attempt pair</li>
+      <li>Draw button &rarr; Flip stock card (if available)</li>
+      <li>New Game &rarr; Start fresh</li>
+      <li>Toggles: Sounds/BGM on/off (saved preferences)</li>
+    </ul>
+
+    <h2>Game Modes</h2>
+    <p>Select from the dropdown:</p>
+    <table>
+      <tr>
+        <th>Mode</th>
+        <th>Draws</th>
+        <th>Target Sum</th>
+        <th>Win Rate</th>
+      </tr>
+      <tr>
+        <td>Easy</td>
+        <td>20</td>
+        <td>13-15</td>
+        <td>~60%</td>
+      </tr>
+      <tr>
+        <td>Medium</td>
+        <td>15</td>
+        <td>14</td>
+        <td>~30-40%</td>
+      </tr>
+      <tr>
+        <td>Hard</td>
+        <td>10</td>
+        <td>Random 12-15</td>
+        <td>~15%</td>
+      </tr>
+    </table>
+
+    <h2>Scoring</h2>
+    <ul>
+      <li>50 points per pair</li>
+      <li>+100 chain bonus for pairs without drawing</li>
+      <li>x2 streak multiplier after 5 chains</li>
+      <li>Track best scores in stats footer!</li>
+    </ul>
+
+    <h2>Best Strategies & Tips</h2>
+
+    <h3>Beginner Tips</h3>
+    <div class="tip-box">
+      <ul>
+        <li><span class="highlight">Prioritize bottom row:</span> Always pair exposed bottom cards first - unlocks upper layers faster.</li>
+        <li><span class="highlight">Save wilds early:</span> Don't waste Aces/Kings on easy pairs - use for rescues when stuck.</li>
+        <li><span class="highlight">Draw sparingly:</span> Limit draws to 10-12 max - each draw "wastes" potential chain bonuses.</li>
+        <li><span class="highlight">Check Next pile:</span> Pyramid + Next pairs are often easier than pyramid + pyramid.</li>
+      </ul>
+    </div>
+
+    <h3>Advanced Strategies</h3>
+    <div class="tip-box">
+      <ul>
+        <li><span class="highlight">Chain building:</span> Aim for 5+ consecutive no-draw pairs &rarr; x2 multiplier kicks in for big scores.</li>
+        <li><span class="highlight">Exposure planning:</span> Remove pairs that unlock multiple upper cards (e.g., siblings in the same row).</li>
+        <li><span class="highlight">Wild timing:</span> Pair wilds with low-value blockers (e.g., leftover 1-5s) - save for high ranks later.</li>
+        <li><span class="highlight">Stock peek strategy:</span> Draw when pyramid has 3+ pairs possible - avoid "burying" good cards.</li>
+      </ul>
+    </div>
+
+    <h3>Mode Mastery</h3>
+    <ul>
+      <li><span class="highlight">Easy:</span> Aggressive draws for practice.</li>
+      <li><span class="highlight">Medium:</span> Conserve draws, focus chains.</li>
+      <li><span class="highlight">Hard:</span> Random sums - memorize quick math (e.g., target 13: pair 7s early).</li>
+    </ul>
+
+    <h2>Common Stuck Situations</h2>
+    <table>
+      <tr>
+        <th>Situation</th>
+        <th>Solution</th>
+      </tr>
+      <tr>
+        <td>No pyramid pairs</td>
+        <td>Draw + pair with Next pile</td>
+      </tr>
+      <tr>
+        <td>Isolated low card (1-5)</td>
+        <td>Save a wild for it</td>
+      </tr>
+      <tr>
+        <td>Too many draws used</td>
+        <td>Focus pyramid-only chains</td>
+      </tr>
+      <tr>
+        <td>Upper cards blocked</td>
+        <td>Clear both child pairs symmetrically</td>
+      </tr>
+    </table>
+
+    <h2>Pro Stats to Aim For</h2>
+    <ul>
+      <li><span class="highlight">Wins:</span> 40%+ in Medium</li>
+      <li><span class="highlight">Avg Score:</span> 800+ (14 pairs x 50 = 700 base + bonuses)</li>
+      <li><span class="highlight">Max Chains:</span> 10+ consecutive no-draw pairs</li>
+    </ul>
+
+    <h2>Troubleshooting</h2>
+    <ul>
+      <li><span class="highlight">Cards not tappable?</span> Ensure you're tapping exposed cards only (brighter border).</li>
+      <li><span class="highlight">Sounds not playing?</span> Toggle on + tap once (mobile browsers block autoplay).</li>
+      <li><span class="highlight">Game not saving?</span> Enable localStorage in browser settings (rare).</li>
+    </ul>
+
+    <h2>Credits & License</h2>
+    <ul>
+      <li>Developed by Curtis Biggs (<a href="https://x.com/cbiggs90" style="color: #FFD700;">@Cbiggs90</a>)</li>
+      <li>Built with vanilla HTML/CSS/JS - no frameworks</li>
+      <li>Audio generated with Suno.ai</li>
+      <li>Open source: <a href="https://github.com/cbiggs1-tech" style="color: #FFD700;">GitHub</a></li>
+      <li>MIT License - fork and improve!</li>
+    </ul>
+
+    <p style="text-align: center; margin-top: 30px; font-size: 1.2rem;">Enjoy Pyramis! Just one more game...</p>
+
+    <div style="text-align: center; margin-top: 20px;">
+      <a href="index.html" class="back-link">&larr; Back to Game</a>
+    </div>
+  </div>
+</body>
+</html>
