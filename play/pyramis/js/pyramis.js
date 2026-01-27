@@ -1520,7 +1520,6 @@ function attemptPairFromUI(source1, source2) {
  * Handles draw button click.
  */
 function handleDraw() {
-    tryResumeBGM();
     selectedCard = null;
 
     if (drawsLeft <= 0) {
@@ -1554,7 +1553,6 @@ function handleDraw() {
  * Handles new game button click.
  */
 function handleNewGame() {
-    tryResumeBGM();
     hideWinOverlay();
     // PHASE 5: Reset end game flag
     gameEndRecorded = false;
@@ -1621,8 +1619,6 @@ function showFeedback(message, type) {
  * @param {Event} e - Click or touch event
  */
 function handleGameClick(e) {
-    tryResumeBGM();
-
     const cardEl = e.target.closest('.card');
     if (!cardEl) return;
 
@@ -1655,7 +1651,6 @@ function handleGameClick(e) {
  * Handles undo button click.
  */
 function handleUndo() {
-    tryResumeBGM();
     performUndo();
 }
 
