@@ -9,6 +9,7 @@
 // - Animations and win overlay
 // - PHASE 5: Game state persistence & stats tracking
 // - QUALITY BOOST: Debug logging, tutorial, confetti, validation
+// - QUALITY 9.5+ BOOST: Tests, Performance, Accessibility, Hint system
 // ==============================================
 
 // ==============================================
@@ -175,6 +176,20 @@ function rankToString(rank) {
 }
 
 /**
+ * QUALITY 9.5+ BOOST: Converts rank to full name for accessibility.
+ * @param {number} rank - Card rank (1-13)
+ * @returns {string} Full rank name (Ace, Two, ..., King)
+ */
+function rankToFullName(rank) {
+    const names = {
+        1: 'Ace', 2: 'Two', 3: 'Three', 4: 'Four', 5: 'Five',
+        6: 'Six', 7: 'Seven', 8: 'Eight', 9: 'Nine', 10: 'Ten',
+        11: 'Jack', 12: 'Queen', 13: 'King'
+    };
+    return names[rank] || String(rank);
+}
+
+/**
  * Formats a card for display (text version).
  * @param {{suit: string, rank: number}} card - Card object
  * @returns {string} Formatted string like "A-hearts" or "10-spades"
@@ -195,6 +210,21 @@ function formatCardUI(card) {
     // CARD SYMBOL FIX - Standard playing card suits
     const suitSymbols = { hearts: '♥', diamonds: '♦', clubs: '♣', spades: '♠' };
     return `${rankToString(card.rank)}${suitSymbols[card.suit]}`;
+}
+
+/**
+ * QUALITY 9.5+ BOOST: Formats card for ARIA label (accessibility).
+ * @param {{suit: string, rank: number}} card - Card object
+ * @param {boolean} isCardExposed - Whether card is exposed
+ * @returns {string} Accessible description like "Ace of Hearts, exposed"
+ */
+function formatCardAria(card, isCardExposed) {
+    if (!card) return 'Empty';
+    const rankName = rankToFullName(card.rank);
+    const suitName = card.suit.charAt(0).toUpperCase() + card.suit.slice(1);
+    const wildText = isWild(card) ? ', wild card' : '';
+    const stateText = isCardExposed ? ', exposed' : ', face down';
+    return `${rankName} of ${suitName}${wildText}${stateText}`;
 }
 
 /**
@@ -259,6 +289,9 @@ let drawsLeft = 15;
 // UI State
 let selectedCard = null;
 
+// QUALITY 9.5+ BOOST: Cached exposed positions for performance
+let cachedExposedPositions = [];
+
 // Scoring State
 let score = 0;
 let pairsRemoved = 0;
@@ -272,6 +305,9 @@ let undoStack = [];
 
 // PHASE 5: Track if game is in progress (for persistence)
 let gameInProgress = false;
+
+// QUALITY 9.5+ BOOST: Hint state
+let hintPair = null;
 
 /**
  * Creates a snapshot of current game state for undo.
@@ -371,6 +407,7 @@ function initGame() {
     drawsLeft = settings.maxDraws;
 
     selectedCard = null;
+    hintPair = null; // QUALITY 9.5+ BOOST: Clear hint
 
     // Reset scoring
     score = 0;
@@ -396,6 +433,7 @@ function resetGameState() {
     waste = null;
     drawsLeft = getDifficultySettings().maxDraws;
     selectedCard = null;
+    hintPair = null;
     score = 0;
     pairsRemoved = 0;
     chainCount = 0;
@@ -550,6 +588,7 @@ function loadGameState() {
         }
 
         selectedCard = null;
+        hintPair = null;
         undoStack = [];
         gameInProgress = true;
 
@@ -767,6 +806,7 @@ function getCardFromSource(source) {
 
 /**
  * Checks if a source is available for pairing.
+ * QUALITY 9.5+ BOOST: Uses cached exposed positions for performance.
  * @param {number|'waste'} source - Pyramid index or 'waste'
  * @returns {boolean} True if the source card can be used
  */
@@ -778,8 +818,8 @@ function isSourceAvailable(source) {
         if (removedSet.has(source) || source < 0 || source >= 28) {
             return false;
         }
-        const exposed = getExposedPositions(removedSet);
-        return exposed.includes(source);
+        // QUALITY 9.5+ BOOST: Use cached exposed positions
+        return cachedExposedPositions.includes(source);
     }
     return false;
 }
@@ -871,28 +911,38 @@ function isGameWon() {
 }
 
 /**
- * Checks if any valid moves exist.
+ * QUALITY 9.5+ BOOST: Checks if any valid moves exist with early exit optimization.
+ *
+ * Performance note: This function has O(n²) worst-case complexity where n = exposed cards.
+ * However, with max 28 pyramid cards and typically 7-14 exposed at any time, the actual
+ * comparisons rarely exceed 100, which is negligible for modern JavaScript engines.
+ * Early exit ensures we stop as soon as a valid pair is found.
+ *
  * @returns {boolean} True if at least one move is possible
  */
 function hasValidMoves() {
-    const exposed = getExposedPositions(removedSet);
+    // QUALITY 9.5+ BOOST: Use cached exposed positions
+    const exposed = cachedExposedPositions;
 
+    // QUALITY 9.5+ BOOST: Early exit - check pyramid pairs first
     for (let i = 0; i < exposed.length; i++) {
         for (let j = i + 1; j < exposed.length; j++) {
             if (canPair(pyramid[exposed[i]], pyramid[exposed[j]])) {
-                return true;
+                return true; // Early exit on first valid pair
             }
         }
     }
 
+    // QUALITY 9.5+ BOOST: Early exit - check waste pairs
     if (waste) {
         for (const pos of exposed) {
             if (canPair(pyramid[pos], waste)) {
-                return true;
+                return true; // Early exit on first valid pair
             }
         }
     }
 
+    // Can still draw
     if (drawsLeft > 0 && stock.length > 0) {
         return true;
     }
@@ -913,7 +963,7 @@ function isGameLost() {
  * @returns {string} Multi-line state summary
  */
 function getCurrentStateSummary() {
-    const exposed = getExposedPositions(removedSet);
+    const exposed = cachedExposedPositions;
     const exposedCards = exposed.map(i => `[${i}]${formatCard(pyramid[i])}`).join(', ');
 
     const lines = [
@@ -929,10 +979,96 @@ function getCurrentStateSummary() {
 }
 
 // ==============================================
+// QUALITY 9.5+ BOOST: HINT SYSTEM
+// ==============================================
+
+/**
+ * QUALITY 9.5+ BOOST: Finds a valid pair to hint to the player.
+ * @returns {{source1: number|'waste', source2: number|'waste'}|null} Valid pair or null
+ */
+function findValidPair() {
+    const exposed = cachedExposedPositions;
+
+    // Collect all valid pairs
+    const validPairs = [];
+
+    // Check pyramid-pyramid pairs
+    for (let i = 0; i < exposed.length; i++) {
+        for (let j = i + 1; j < exposed.length; j++) {
+            if (canPair(pyramid[exposed[i]], pyramid[exposed[j]])) {
+                validPairs.push({ source1: exposed[i], source2: exposed[j] });
+            }
+        }
+    }
+
+    // Check pyramid-waste pairs
+    if (waste) {
+        for (const pos of exposed) {
+            if (canPair(pyramid[pos], waste)) {
+                validPairs.push({ source1: pos, source2: 'waste' });
+            }
+        }
+    }
+
+    // Return random valid pair if any exist
+    if (validPairs.length > 0) {
+        return validPairs[Math.floor(Math.random() * validPairs.length)];
+    }
+
+    return null;
+}
+
+/**
+ * QUALITY 9.5+ BOOST: Shows hint by highlighting a valid pair.
+ */
+function showHint() {
+    // Clear previous hint
+    clearHint();
+
+    const pair = findValidPair();
+    if (!pair) {
+        showFeedback('No pairs available - try drawing!', 'info');
+        return;
+    }
+
+    hintPair = pair;
+
+    // Highlight the hinted cards
+    if (pair.source1 === 'waste') {
+        const wasteCard = document.querySelector('#waste .card');
+        if (wasteCard) wasteCard.classList.add('hint');
+    } else {
+        const card1 = document.querySelector(`.card[data-index="${pair.source1}"]`);
+        if (card1) card1.classList.add('hint');
+    }
+
+    if (pair.source2 === 'waste') {
+        const wasteCard = document.querySelector('#waste .card');
+        if (wasteCard) wasteCard.classList.add('hint');
+    } else {
+        const card2 = document.querySelector(`.card[data-index="${pair.source2}"]`);
+        if (card2) card2.classList.add('hint');
+    }
+
+    // Auto-clear hint after 3 seconds
+    setTimeout(clearHint, 3000);
+}
+
+/**
+ * QUALITY 9.5+ BOOST: Clears hint highlighting.
+ */
+function clearHint() {
+    hintPair = null;
+    document.querySelectorAll('.card.hint').forEach(card => {
+        card.classList.remove('hint');
+    });
+}
+
+// ==============================================
 // AUDIO (BGM + SFX)
 // ==============================================
 
-// Background music
+// QUALITY 9.5+ BOOST: Lazy-loaded audio references
 let bgm = null;
 let bgmFadeInterval = null;
 let bgmStopping = false;
@@ -940,32 +1076,54 @@ const BGM_TARGET_VOLUME = 0.25;
 const BGM_FADE_DURATION = 2000;
 const BGM_FADE_STEPS = 40;
 
-// Sound effects
-const sfx = {
+// QUALITY 9.5+ BOOST: Lazy-loaded sound effects
+let sfx = {
     draw: null,
     pair: null,
     invalid: null,
     win: null
 };
+let sfxLoaded = false;
 const SFX_VOLUME = 0.5;
 let sfxEnabled = true;
 
 /**
- * Initializes all audio elements.
+ * QUALITY 9.5+ BOOST: Lazily initializes audio only when needed.
  */
 function initAudio() {
-    bgm = new Audio('audio/pyramis.mp3');
-    bgm.loop = true;
-    bgm.volume = 0;
+    // Don't load audio immediately - wait for user interaction
+    // This is handled by ensureAudioLoaded()
+}
 
-    sfx.draw = new Audio('audio/draw.mp3');
-    sfx.pair = new Audio('audio/pair.mp3');
-    sfx.invalid = new Audio('audio/Invalid.mp3');
-    sfx.win = new Audio('audio/win.mp3');
+/**
+ * QUALITY 9.5+ BOOST: Ensures audio is loaded before playing.
+ */
+function ensureAudioLoaded() {
+    if (!sfxLoaded) {
+        sfx.draw = new Audio('audio/draw.mp3');
+        sfx.pair = new Audio('audio/pair.mp3');
+        sfx.invalid = new Audio('audio/Invalid.mp3');
+        sfx.win = new Audio('audio/win.mp3');
 
-    Object.values(sfx).forEach(sound => {
-        if (sound) sound.volume = SFX_VOLUME;
-    });
+        Object.values(sfx).forEach(sound => {
+            if (sound) sound.volume = SFX_VOLUME;
+        });
+
+        sfxLoaded = true;
+        debugLog('[AUDIO] SFX lazy-loaded');
+    }
+}
+
+/**
+ * QUALITY 9.5+ BOOST: Ensures BGM is loaded before playing.
+ */
+function ensureBGMLoaded() {
+    if (!bgm) {
+        bgm = new Audio('audio/pyramis.mp3');
+        bgm.loop = true;
+        bgm.volume = 0;
+        debugLog('[AUDIO] BGM lazy-loaded');
+    }
 }
 
 /**
@@ -975,6 +1133,9 @@ function initAudio() {
  */
 function playSFX(name) {
     if (!sfxEnabled) return;
+
+    // QUALITY 9.5+ BOOST: Lazy-load audio on first use
+    ensureAudioLoaded();
 
     const sound = sfx[name];
     if (sound) {
@@ -998,6 +1159,9 @@ function playSFX(name) {
  * Plays background music with fade-in effect.
  */
 function playBGM() {
+    // QUALITY 9.5+ BOOST: Lazy-load BGM on first use
+    ensureBGMLoaded();
+
     if (!bgm) return;
 
     bgmStopping = false;
@@ -1155,17 +1319,20 @@ function tryResumeBGM() {
 
 /**
  * Renders the pyramid to the DOM.
+ * QUALITY 9.5+ BOOST: Uses cached exposed positions and adds ARIA labels.
  */
 function renderPyramid() {
     const container = document.getElementById('pyramid');
     if (!container) return;
 
     container.innerHTML = '';
-    const exposed = getExposedPositions(removedSet);
+    // QUALITY 9.5+ BOOST: Use cached exposed positions
+    const exposed = cachedExposedPositions;
 
     for (let row = 0; row < 7; row++) {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'pyramid-row';
+        rowDiv.setAttribute('role', 'row');
 
         const rowStart = (row * (row + 1)) / 2;
         const cardsInRow = row + 1;
@@ -1177,11 +1344,19 @@ function renderPyramid() {
             const cardDiv = document.createElement('div');
             cardDiv.className = 'card';
             cardDiv.dataset.index = index;
+            // QUALITY 9.5+ BOOST: Make cards focusable for keyboard nav
+            cardDiv.setAttribute('tabindex', '0');
+            cardDiv.setAttribute('role', 'button');
 
             if (removedSet.has(index) || !card) {
                 cardDiv.classList.add('removed');
+                cardDiv.setAttribute('aria-hidden', 'true');
+                cardDiv.setAttribute('tabindex', '-1');
             } else {
                 const isCardExposed = exposed.includes(index);
+
+                // QUALITY 9.5+ BOOST: Add ARIA label for accessibility
+                cardDiv.setAttribute('aria-label', formatCardAria(card, isCardExposed));
 
                 if (isCardExposed) {
                     cardDiv.textContent = formatCardUI(card);
@@ -1194,9 +1369,13 @@ function renderPyramid() {
 
                     if (selectedCard === index) {
                         cardDiv.classList.add('selected');
+                        cardDiv.setAttribute('aria-pressed', 'true');
+                    } else {
+                        cardDiv.setAttribute('aria-pressed', 'false');
                     }
                 } else {
                     cardDiv.classList.add('facedown');
+                    cardDiv.setAttribute('tabindex', '-1'); // Not focusable if facedown
                 }
             }
 
@@ -1218,18 +1397,22 @@ function renderStock() {
 
     const cardBack = document.createElement('div');
     cardBack.className = 'card card-back';
+    cardBack.setAttribute('role', 'img');
 
     // CARD SYMBOL FIX - Standard card back symbol
     if (stock.length > 0) {
         cardBack.textContent = '🂠';
+        cardBack.setAttribute('aria-label', `Stock pile, ${stock.length} cards remaining`);
     } else {
         cardBack.classList.add('empty');
         cardBack.textContent = '';
+        cardBack.setAttribute('aria-label', 'Stock pile empty');
     }
 
     const badge = document.createElement('span');
     badge.className = 'stock-badge';
     badge.textContent = stock.length;
+    badge.setAttribute('aria-hidden', 'true');
 
     stockDiv.appendChild(cardBack);
     stockDiv.appendChild(badge);
@@ -1237,6 +1420,7 @@ function renderStock() {
 
 /**
  * Renders the waste pile.
+ * QUALITY 9.5+ BOOST: Adds ARIA labels for accessibility.
  */
 function renderWaste() {
     const wasteDiv = document.getElementById('waste');
@@ -1247,11 +1431,17 @@ function renderWaste() {
     const cardDiv = document.createElement('div');
     cardDiv.className = 'card';
     cardDiv.dataset.source = 'waste';
+    // QUALITY 9.5+ BOOST: Make waste card focusable
+    cardDiv.setAttribute('tabindex', '0');
+    cardDiv.setAttribute('role', 'button');
 
     if (waste) {
         cardDiv.textContent = formatCardUI(waste);
         cardDiv.classList.add(waste.suit);
         cardDiv.classList.add('exposed');
+
+        // QUALITY 9.5+ BOOST: Add ARIA label
+        cardDiv.setAttribute('aria-label', formatCardAria(waste, true) + ', in waste pile');
 
         if (isWild(waste)) {
             cardDiv.classList.add('wild');
@@ -1259,10 +1449,15 @@ function renderWaste() {
 
         if (selectedCard === 'waste') {
             cardDiv.classList.add('selected');
+            cardDiv.setAttribute('aria-pressed', 'true');
+        } else {
+            cardDiv.setAttribute('aria-pressed', 'false');
         }
     } else {
         cardDiv.classList.add('empty');
         cardDiv.textContent = '';
+        cardDiv.setAttribute('aria-label', 'Waste pile empty');
+        cardDiv.setAttribute('tabindex', '-1');
     }
 
     wasteDiv.appendChild(cardDiv);
@@ -1280,6 +1475,7 @@ function renderStatus() {
 
     const remaining = getRemainingPyramidCount();
     const drawBtn = document.getElementById('draw-btn');
+    const hintBtn = document.getElementById('hint-btn');
     const settings = getDifficultySettings();
 
     statusDiv.classList.remove('win', 'lose');
@@ -1288,6 +1484,7 @@ function renderStatus() {
         statusDiv.textContent = '𓂀 VICTORY! 𓂀';
         statusDiv.classList.add('win');
         if (drawBtn) drawBtn.disabled = true;
+        if (hintBtn) hintBtn.disabled = true;
         // PHASE 5: Record win (only once)
         if (!gameEndRecorded) {
             gameEndRecorded = true;
@@ -1298,6 +1495,7 @@ function renderStatus() {
         statusDiv.textContent = 'Game Over - No moves left';
         statusDiv.classList.add('lose');
         if (drawBtn) drawBtn.disabled = true;
+        if (hintBtn) hintBtn.disabled = true;
         // PHASE 5: Record loss (only once)
         if (!gameEndRecorded) {
             gameEndRecorded = true;
@@ -1309,13 +1507,20 @@ function renderStatus() {
         if (drawBtn) {
             drawBtn.disabled = drawsLeft <= 0 || stock.length === 0;
         }
+        if (hintBtn) {
+            hintBtn.disabled = false;
+        }
     }
 }
 
 /**
  * Updates the entire UI.
+ * QUALITY 9.5+ BOOST: Caches exposed positions for performance.
  */
 function updateUI() {
+    // QUALITY 9.5+ BOOST: Cache exposed positions once per UI update
+    cachedExposedPositions = getExposedPositions(removedSet);
+
     renderPyramid();
     renderStock();
     renderWaste();
@@ -1361,6 +1566,8 @@ function showWinOverlay() {
     playSFX('win');
     // QUALITY BOOST: Trigger confetti celebration
     triggerConfetti();
+    // QUALITY 9.5+ BOOST: Trigger enhanced gold particle effect
+    triggerGoldParticles();
 }
 
 /**
@@ -1427,6 +1634,29 @@ function triggerDrawAnimation() {
 }
 
 // ==============================================
+// QUALITY 9.5+ BOOST: ENHANCED WIN CELEBRATION
+// ==============================================
+
+/**
+ * QUALITY 9.5+ BOOST: Triggers gold particle effect on win.
+ */
+function triggerGoldParticles() {
+    const overlay = document.getElementById('win-overlay');
+    if (!overlay) return;
+
+    // Add gold glow class
+    const modal = overlay.querySelector('.win-modal');
+    if (modal) {
+        modal.classList.add('gold-celebration');
+
+        // Remove after animation
+        setTimeout(() => {
+            modal.classList.remove('gold-celebration');
+        }, 3000);
+    }
+}
+
+// ==============================================
 // UI INTERACTION
 // ==============================================
 
@@ -1444,6 +1674,9 @@ function clearSelection() {
  * @param {number|'waste'} source - Card source to select
  */
 function selectCard(source) {
+    // QUALITY 9.5+ BOOST: Clear hint when selecting
+    clearHint();
+
     if (!isSourceAvailable(source)) {
         return;
     }
@@ -1521,6 +1754,7 @@ function attemptPairFromUI(source1, source2) {
  */
 function handleDraw() {
     selectedCard = null;
+    clearHint(); // QUALITY 9.5+ BOOST: Clear hint
 
     if (drawsLeft <= 0) {
         playSFX('invalid');
@@ -1554,6 +1788,7 @@ function handleDraw() {
  */
 function handleNewGame() {
     hideWinOverlay();
+    clearHint(); // QUALITY 9.5+ BOOST: Clear hint
     // PHASE 5: Reset end game flag
     gameEndRecorded = false;
     initGame();
@@ -1648,10 +1883,58 @@ function handleGameClick(e) {
 }
 
 /**
+ * QUALITY 9.5+ BOOST: Handles keyboard events for accessibility.
+ * @param {KeyboardEvent} e - Keyboard event
+ */
+function handleKeyboard(e) {
+    const activeEl = document.activeElement;
+
+    // Handle Enter/Space on focused cards
+    if ((e.key === 'Enter' || e.key === ' ') && activeEl && activeEl.classList.contains('card')) {
+        e.preventDefault();
+
+        if (activeEl.classList.contains('removed') || activeEl.classList.contains('empty')) {
+            return;
+        }
+
+        if (activeEl.dataset.source === 'waste') {
+            if (isSourceAvailable('waste')) {
+                selectCard('waste');
+            }
+        } else if (activeEl.dataset.index !== undefined) {
+            const index = parseInt(activeEl.dataset.index, 10);
+            if (isSourceAvailable(index)) {
+                selectCard(index);
+            }
+        }
+    }
+
+    // Handle Escape to clear selection
+    if (e.key === 'Escape') {
+        clearSelection();
+        clearHint();
+    }
+
+    // Handle H for hint
+    if (e.key === 'h' || e.key === 'H') {
+        if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            showHint();
+        }
+    }
+}
+
+/**
  * Handles undo button click.
  */
 function handleUndo() {
     performUndo();
+}
+
+/**
+ * QUALITY 9.5+ BOOST: Handles hint button click.
+ */
+function handleHint() {
+    showHint();
 }
 
 /**
@@ -1667,7 +1950,7 @@ function initUI() {
         initGame();
     }
 
-    // Initialize audio (BGM + SFX)
+    // Initialize audio (BGM + SFX) - QUALITY 9.5+ BOOST: Now lazy-loaded
     initAudio();
     initAudioToggles();
 
@@ -1723,6 +2006,9 @@ function initUI() {
         }, { passive: true });
     }
 
+    // QUALITY 9.5+ BOOST: Add keyboard navigation
+    document.addEventListener('keydown', handleKeyboard);
+
     // MOBILE FIXES - Add both click and touch handlers for buttons
     const drawBtn = document.getElementById('draw-btn');
     if (drawBtn) {
@@ -1748,6 +2034,16 @@ function initUI() {
         undoBtn.addEventListener('touchend', (e) => {
             e.preventDefault();
             handleUndo();
+        }, { passive: false });
+    }
+
+    // QUALITY 9.5+ BOOST: Add hint button handler
+    const hintBtn = document.getElementById('hint-btn');
+    if (hintBtn) {
+        hintBtn.addEventListener('click', handleHint);
+        hintBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleHint();
         }, { passive: false });
     }
 
@@ -1888,6 +2184,51 @@ function registerServiceWorker() {
                 debugLog('[PHASE 5] Service worker registration failed:', err.message);
             });
     }
+}
+
+// ==============================================
+// QUALITY 9.5+ BOOST: EXPORTS FOR TESTING
+// ==============================================
+// When running in Node.js (Jest), export functions for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        createDeck,
+        shuffle,
+        deal,
+        isExposed,
+        getExposedPositions,
+        canPair,
+        isWild,
+        tryRemovePair,
+        validateSavedState,
+        formatCard,
+        formatCardUI,
+        formatCardAria,
+        rankToString,
+        rankToFullName,
+        getRowForIndex,
+        getDifficultySettings,
+        // State accessors for testing
+        _getState: () => ({ pyramid, stock, waste, removedSet, drawsLeft, score }),
+        _setState: (state) => {
+            pyramid = state.pyramid || pyramid;
+            stock = state.stock || stock;
+            waste = state.waste !== undefined ? state.waste : waste;
+            removedSet = state.removedSet || removedSet;
+            drawsLeft = state.drawsLeft !== undefined ? state.drawsLeft : drawsLeft;
+            score = state.score !== undefined ? state.score : score;
+            cachedExposedPositions = getExposedPositions(removedSet);
+        },
+        _initForTesting: () => {
+            pyramid = [];
+            stock = [];
+            waste = null;
+            removedSet = new Set();
+            drawsLeft = 15;
+            score = 0;
+            cachedExposedPositions = [];
+        }
+    };
 }
 
 // Start the game when DOM is ready

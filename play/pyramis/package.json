@@ -1,0 +1,37 @@
+{
+  "name": "pyramis",
+  "version": "1.0.0",
+  "description": "Egyptian pyramid solitaire card game",
+  "main": "js/pyramis.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "verbose": true,
+    "collectCoverageFrom": [
+      "js/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    }
+  },
+  "keywords": [
+    "solitaire",
+    "card-game",
+    "pyramid",
+    "pwa"
+  ],
+  "author": "Curtis Biggs",
+  "license": "MIT"
+}

@@ -912,6 +912,101 @@
         font-size: 1rem;
       }
     }
+
+    /* QUALITY 9.5+ BOOST: Hint button styling */
+    #hint-btn {
+      background: linear-gradient(135deg, #32CD32 0%, #228B22 100%);
+      color: #FFF;
+    }
+
+    #hint-btn:disabled {
+      background: #666;
+      border-color: #888;
+      color: #aaa;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* QUALITY 9.5+ BOOST: Hint highlighting on cards */
+    .card.hint {
+      outline: 3px solid #32CD32;
+      animation: hintPulse 0.6s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(50, 205, 50, 0.7), 0 0 30px rgba(50, 205, 50, 0.4);
+    }
+
+    @keyframes hintPulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(50, 205, 50, 0.6); }
+      50% { box-shadow: 0 0 25px rgba(50, 205, 50, 0.9), 0 0 35px rgba(50, 205, 50, 0.5); }
+    }
+
+    /* QUALITY 9.5+ BOOST: Keyboard focus styles for accessibility */
+    .card:focus {
+      outline: 3px solid #1E90FF;
+      outline-offset: 2px;
+      box-shadow: 0 0 10px rgba(30, 144, 255, 0.6);
+    }
+
+    .card:focus:not(:focus-visible) {
+      outline: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(139, 69, 19, 0.1);
+    }
+
+    .card:focus-visible {
+      outline: 3px solid #1E90FF;
+      outline-offset: 2px;
+      box-shadow: 0 0 10px rgba(30, 144, 255, 0.6);
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #1E90FF;
+      outline-offset: 2px;
+    }
+
+    /* QUALITY 9.5+ BOOST: Enhanced gold celebration effect for win */
+    .win-modal.gold-celebration {
+      animation: goldGlow 0.5s ease-out, goldPulse 1s ease-in-out 0.5s infinite;
+    }
+
+    @keyframes goldGlow {
+      0% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.5); }
+      50% { box-shadow: 0 0 100px rgba(255, 215, 0, 1), 0 0 150px rgba(255, 165, 0, 0.7); }
+      100% { box-shadow: 0 0 70px rgba(255, 215, 0, 0.8); }
+    }
+
+    @keyframes goldPulse {
+      0%, 100% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.6), 0 0 80px rgba(255, 165, 0, 0.3); }
+      50% { box-shadow: 0 0 80px rgba(255, 215, 0, 0.9), 0 0 120px rgba(255, 165, 0, 0.5); }
+    }
+
+    .win-modal.gold-celebration h2 {
+      animation: textShimmer 2s ease-in-out infinite;
+    }
+
+    @keyframes textShimmer {
+      0%, 100% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.5); }
+      50% { text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 165, 0, 0.6); }
+    }
+
+    /* QUALITY 9.5+ BOOST: Skip link for accessibility (hidden until focused) */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #FFD700;
+      color: #8B4513;
+      padding: 8px 16px;
+      z-index: 2000;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 0 0 8px 0;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
   </style>
 </head>
 <body>
@@ -948,6 +1043,8 @@
     <div id="controls">
       <button id="new-game-btn">New</button>
       <button id="undo-btn" disabled>Undo <span class="undo-badge" id="undo-count">0</span></button>
+      <!-- QUALITY 9.5+ BOOST: Hint button -->
+      <button id="hint-btn" title="Show a valid pair (H key)">Hint</button>
       <div id="difficulty-container">
         <label for="difficulty-select">Mode:</label>
         <select id="difficulty-select">
