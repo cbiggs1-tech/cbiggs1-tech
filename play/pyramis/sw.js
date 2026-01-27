@@ -2,7 +2,7 @@
 // PYRAMIS - Service Worker (Phase 5)
 // ==============================================
 
-const CACHE_NAME = 'pyramis-v1';
+const CACHE_NAME = 'pyramis-v2';
 
 const ASSETS_TO_CACHE = [
     './',
