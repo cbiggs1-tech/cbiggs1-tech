@@ -6,6 +6,7 @@
 // - If their operation result equals the target → both stones turn gold (.solved)
 // - Capstone then updates to a NEW target from remaining possible pairs
 // - Face completes when no more valid pairs exist
+// - Complete all 4 faces to level up!
 // ===========================================
 
 // ============================================
@@ -43,15 +44,103 @@ const OPERATIONS = {
 const FACE_ORDER = ['add', 'subtract', 'multiply', 'divide'];
 
 // Stones per row (capstone at top, base at bottom)
-// DIFFICULTY SCALING: Add more rows for harder levels
-// Easy: [1, 2, 3, 4, 5] = 15 stones, 7 pairs to solve
-// Medium: [1, 2, 3, 4, 5, 6] = 21 stones, 10 pairs to solve
-// Hard: [1, 2, 3, 4, 5, 6, 7] = 28 stones, 13 pairs to solve
+// Fixed at 5 rows: [1, 2, 3, 4, 5] = 15 stones, 7 pairs to solve per face
+// FUTURE: Could add more rows for additional challenge modes
 const ROWS = [1, 2, 3, 4, 5];
+
+// ============================================
+// Level Configuration
+// Age-appropriate progression for 4th-6th graders (ages 9-12)
+// ============================================
+
+/**
+ * Get number ranges for a given level and operation
+ * Ranges apply to BASE ROW (row 4) only - upper rows compute from base
+ *
+ * Level 1: Very easy (warm-up)
+ * Level 2-3: 4th grade fluency
+ * Level 4-6: 5th grade speed/challenge
+ * Level 7+: 6th grade estimation & mental math mastery
+ */
+function getLevelRanges(level, operation) {
+    // Level scaling ranges
+    // Addition/Subtraction scale faster (linear math)
+    // Multiplication/Division scale slower (exponential growth in results)
+    const levelScaling = {
+        add: [
+            { min: 1, max: 10 },      // Level 1: 1-10
+            { min: 5, max: 25 },      // Level 2: 5-25
+            { min: 10, max: 50 },     // Level 3: 10-50
+            { min: 20, max: 100 },    // Level 4: 20-100
+            { min: 50, max: 200 },    // Level 5: 50-200
+            { min: 75, max: 300 },    // Level 6: 75-300
+            // Level 7+: +50% per level
+        ],
+        subtract: [
+            { min: 5, max: 20 },      // Level 1: 5-20
+            { min: 10, max: 50 },     // Level 2: 10-50
+            { min: 20, max: 100 },    // Level 3: 20-100
+            { min: 40, max: 200 },    // Level 4: 40-200
+            { min: 80, max: 400 },    // Level 5: 80-400
+            { min: 120, max: 600 },   // Level 6: 120-600
+            // Level 7+: +50% per level
+        ],
+        multiply: [
+            { min: 1, max: 8 },       // Level 1: 1-8
+            { min: 2, max: 12 },      // Level 2: 2-12
+            { min: 4, max: 15 },      // Level 3: 4-15
+            { min: 5, max: 20 },      // Level 4: 5-20
+            { min: 8, max: 25 },      // Level 5: 8-25
+            { min: 10, max: 30 },     // Level 6: 10-30
+            // Level 7+: +25% per level
+        ],
+        divide: [
+            // divisor × quotient = product shown on stone
+            { minDivisor: 2, maxDivisor: 6, minQuotient: 2, maxQuotient: 8 },    // L1: 4-48
+            { minDivisor: 3, maxDivisor: 9, minQuotient: 3, maxQuotient: 12 },   // L2: 9-108
+            { minDivisor: 4, maxDivisor: 12, minQuotient: 4, maxQuotient: 15 },  // L3: 16-180
+            { minDivisor: 5, maxDivisor: 15, minQuotient: 5, maxQuotient: 20 },  // L4: 25-300
+            { minDivisor: 6, maxDivisor: 20, minQuotient: 6, maxQuotient: 25 },  // L5: 36-500
+            { minDivisor: 8, maxDivisor: 25, minQuotient: 8, maxQuotient: 30 },  // L6: 64-750
+            // Level 7+: +30% per level
+        ]
+    };
+
+    const scales = levelScaling[operation];
+    const idx = Math.min(level - 1, scales.length - 1);
+    let range = { ...scales[idx] };
+
+    // For levels beyond our defined ranges, scale up progressively
+    if (level > scales.length) {
+        const extraLevels = level - scales.length;
+
+        if (operation === 'add' || operation === 'subtract') {
+            // +50% per level for add/subtract
+            const multiplier = Math.pow(1.5, extraLevels);
+            range.min = Math.round(range.min * multiplier);
+            range.max = Math.round(range.max * multiplier);
+        } else if (operation === 'multiply') {
+            // +25% per level for multiply
+            const multiplier = Math.pow(1.25, extraLevels);
+            range.min = Math.round(range.min * multiplier);
+            range.max = Math.round(range.max * multiplier);
+        } else if (operation === 'divide') {
+            // +30% per level for divide
+            const multiplier = Math.pow(1.3, extraLevels);
+            range.minDivisor = Math.round(range.minDivisor * multiplier);
+            range.maxDivisor = Math.round(range.maxDivisor * multiplier);
+            range.minQuotient = Math.round(range.minQuotient * multiplier);
+            range.maxQuotient = Math.round(range.maxQuotient * multiplier);
+        }
+    }
+
+    return range;
+}
 
 // ============================================
 // Game State
 // ============================================
+let currentLevel = 1;  // Difficulty level (1-10+)
 let currentFaceIndex = 0;
 let score = 0;
 let streak = 0;
@@ -66,6 +155,7 @@ let completedFaces = new Set();
 // DOM Elements
 // ============================================
 const pyramid = document.getElementById('pyramid');
+const levelValue = document.getElementById('level-value');
 const scoreValue = document.getElementById('score-value');
 const timerValue = document.getElementById('timer-value');
 const streakValue = document.getElementById('streak-value');
@@ -84,6 +174,7 @@ const levelCompleteModal = document.getElementById('level-complete-modal');
 const pyramidCompleteModal = document.getElementById('pyramid-complete-modal');
 const levelContinueBtn = document.getElementById('level-continue-btn');
 const playAgainBtn = document.getElementById('play-again-btn');
+const nextLevelBtn = document.getElementById('next-level-btn');
 
 const faces = {
     add: document.querySelector('.face-front'),
@@ -112,41 +203,36 @@ function shuffleArray(array) {
 // ============================================
 // Number Generation
 // Generates values for all stones on a face
-// Future: Adjust ranges here for difficulty levels
+// Uses currentLevel to scale difficulty
 // ============================================
 
-function generateNumbersForFace(operation) {
-    // Generate pool of numbers based on operation
-    // These become the selectable stones (rows 1-4, excluding capstone row 0)
-
+function generateNumbersForFace(operation, level = currentLevel) {
     switch (operation) {
         case 'add':
-            return generateAdditionNumbers();
+            return generateAdditionNumbers(level);
         case 'subtract':
-            return generateSubtractionNumbers();
+            return generateSubtractionNumbers(level);
         case 'multiply':
-            return generateMultiplicationNumbers();
+            return generateMultiplicationNumbers(level);
         case 'divide':
-            return generateDivisionNumbers();
+            return generateDivisionNumbers(level);
         default:
-            return generateAdditionNumbers();
+            return generateAdditionNumbers(level);
     }
 }
 
-function generateAdditionNumbers() {
-    // Generate numbers where pairs sum to reasonable targets
-    // DIFFICULTY SCALING: Adjust these ranges for harder levels
-    // Easy: 2-12, Medium: 5-25, Hard: 10-50
-    const minVal = 2;
-    const maxVal = 12;
+function generateAdditionNumbers(level) {
+    const range = getLevelRanges(level, 'add');
     const grid = [];
 
+    // Generate base row (row 4) with level-appropriate numbers
     grid[4] = [];
     for (let i = 0; i < 5; i++) {
-        grid[4][i] = randomInt(minVal, maxVal);
+        grid[4][i] = randomInt(range.min, range.max);
     }
 
-    // Build upward (these become reference values, capstone will be dynamic)
+    // Build upward - upper rows computed from pairs below
+    // This naturally scales the capstone target with level
     for (let row = 3; row >= 0; row--) {
         grid[row] = [];
         for (let col = 0; col <= row; col++) {
@@ -157,23 +243,20 @@ function generateAdditionNumbers() {
     return grid;
 }
 
-function generateSubtractionNumbers() {
-    // Generate numbers where pairs have positive differences
-    // DIFFICULTY SCALING: Adjust ranges for harder levels
-    // Easy: 5-20, Medium: 10-50, Hard: 20-100
-    const minVal = 5;
-    const maxVal = 20;
+function generateSubtractionNumbers(level) {
+    const range = getLevelRanges(level, 'subtract');
     const grid = [];
 
+    // Generate base row with level-appropriate numbers
     grid[4] = [];
     for (let i = 0; i < 5; i++) {
-        grid[4][i] = randomInt(minVal, maxVal);
+        grid[4][i] = randomInt(range.min, range.max);
     }
 
+    // Build upward using absolute difference (always non-negative)
     for (let row = 3; row >= 0; row--) {
         grid[row] = [];
         for (let col = 0; col <= row; col++) {
-            // Use absolute difference
             grid[row][col] = Math.abs(grid[row + 1][col] - grid[row + 1][col + 1]);
         }
     }
@@ -181,19 +264,17 @@ function generateSubtractionNumbers() {
     return grid;
 }
 
-function generateMultiplicationNumbers() {
-    // Small numbers to keep products manageable
-    // DIFFICULTY SCALING: Adjust ranges for harder levels
-    // Easy: 2-9, Medium: 3-12, Hard: 5-15
-    const minVal = 2;
-    const maxVal = 9;
+function generateMultiplicationNumbers(level) {
+    const range = getLevelRanges(level, 'multiply');
     const grid = [];
 
+    // Generate base row with level-appropriate numbers
     grid[4] = [];
     for (let i = 0; i < 5; i++) {
-        grid[4][i] = randomInt(minVal, maxVal);
+        grid[4][i] = randomInt(range.min, range.max);
     }
 
+    // Build upward using multiplication
     for (let row = 3; row >= 0; row--) {
         grid[row] = [];
         for (let col = 0; col <= row; col++) {
@@ -204,26 +285,17 @@ function generateMultiplicationNumbers() {
     return grid;
 }
 
-function generateDivisionNumbers() {
-    // Generate numbers that divide cleanly (no fractions, no zeros)
-    // Strategy: Generate quotient × divisor pairs
-    // DIFFICULTY SCALING: Adjust ranges for harder levels
-    // Easy: divisor 2-6, quotient 2-8 → products 4-48
-    // Medium: divisor 2-9, quotient 3-12 → products 6-108
-    // Hard: divisor 3-12, quotient 4-15 → products 12-180
-    const minDivisor = 2;
-    const maxDivisor = 6;
-    const minQuotient = 2;
-    const maxQuotient = 8;
+function generateDivisionNumbers(level) {
+    const range = getLevelRanges(level, 'divide');
     const grid = [];
 
-    // Bottom row: products of small factors (ensures clean division possible)
+    // Generate base row as products of divisor × quotient
+    // This ensures clean integer division is always possible
     grid[4] = [];
     for (let i = 0; i < 5; i++) {
-        // Generate as divisor × quotient to ensure clean division
-        const divisor = randomInt(minDivisor, maxDivisor);
-        const quotient = randomInt(minQuotient, maxQuotient);
-        grid[4][i] = divisor * quotient; // Always ≥ 4, never 0
+        const divisor = randomInt(range.minDivisor, range.maxDivisor);
+        const quotient = randomInt(range.minQuotient, range.maxQuotient);
+        grid[4][i] = divisor * quotient; // Always clean, never 0
     }
 
     // Build upward using division (larger / smaller)
@@ -235,7 +307,7 @@ function generateDivisionNumbers() {
             const dividend = Math.max(a, b);
             const divisor = Math.max(1, Math.min(a, b));
             grid[row][col] = Math.floor(dividend / divisor);
-            // Ensure no zeros
+            // Ensure no zeros (minimum 1)
             if (grid[row][col] === 0) grid[row][col] = 1;
         }
     }
@@ -256,7 +328,7 @@ function populateFace(faceElement, operation) {
     faceBg.className = 'face-bg';
     faceElement.appendChild(faceBg);
 
-    const grid = generateNumbersForFace(operation);
+    const grid = generateNumbersForFace(operation, currentLevel);
 
     // Create all rows and stones
     ROWS.forEach((stoneCount, rowIndex) => {
@@ -364,28 +436,70 @@ function findPairsForTarget(faceElement, operation, target) {
 // Game Initialization
 // ============================================
 
-function initPyramid() {
+function initPyramid(keepScore = false) {
     currentFaceIndex = 0;
-    score = 0;
+    if (!keepScore) {
+        score = 0;
+    }
     streak = 0;
     selectedStones = [];
     elapsedSeconds = 0;
     completedFaces = new Set();
 
+    updateLevelDisplay();
     updateScoreDisplay();
     updateStreakDisplay();
     updateTimerDisplay();
     updateOperationDisplay();
     clearFeedback();
 
-    // Populate all faces with numbers
+    // Populate all faces with numbers (using currentLevel)
     Object.keys(faces).forEach(operation => {
         populateFace(faces[operation], operation);
     });
 
     rotatePyramidTo(0);
     startTimer();
-    setStatus('Find two stones that equal the target at the top!');
+
+    const levelName = getLevelName(currentLevel);
+    setStatus(`Level ${currentLevel} (${levelName}) - Find two stones that equal the target!`);
+}
+
+/**
+ * Get a friendly name for the current level
+ */
+function getLevelName(level) {
+    if (level === 1) return 'Warm-up';
+    if (level <= 3) return '4th Grade';
+    if (level <= 6) return '5th Grade';
+    if (level <= 9) return '6th Grade';
+    return 'Math Master';
+}
+
+/**
+ * Start a completely new game at level 1
+ */
+function startNewGame() {
+    currentLevel = 1;
+    initPyramid(false);
+}
+
+/**
+ * Advance to the next level (keep score)
+ */
+function advanceToNextLevel() {
+    currentLevel++;
+    // Add level-up bonus
+    const levelBonus = 100 * currentLevel;
+    score += levelBonus;
+    initPyramid(true);
+
+    // Show level up feedback
+    setFeedback(`Level Up! Welcome to Level ${currentLevel}! (+${levelBonus} bonus)`, false);
+
+    // Animate the level display
+    levelValue.classList.add('level-up-animation');
+    setTimeout(() => levelValue.classList.remove('level-up-animation'), 1000);
 }
 
 // ============================================
@@ -489,17 +603,21 @@ function handleCorrectPair(stoneA, stoneB, valA, valB, result, operation, opData
     solveStone(stoneA);
     solveStone(stoneB);
 
-    // Calculate points: base 10 + streak bonus
-    // Future difficulty: increase base points for harder levels
-    const points = 10 + (streak * 5);
+    // Calculate points: (base 10 + streak bonus) × level multiplier
+    const basePoints = 10 + (streak * 5);
+    const points = basePoints * currentLevel;
     score += points;
     streak++;
 
     updateScoreDisplay();
     updateStreakDisplay();
 
-    // Show success feedback
-    setFeedback(`✓ ${valA} ${opData.symbol} ${valB} = ${result}! (+${points})`, false);
+    // Show success feedback with level multiplier
+    if (currentLevel > 1) {
+        setFeedback(`✓ ${valA} ${opData.symbol} ${valB} = ${result}! (+${points} = ${basePoints}×L${currentLevel})`, false);
+    } else {
+        setFeedback(`✓ ${valA} ${opData.symbol} ${valB} = ${result}! (+${points})`, false);
+    }
     playSound('correct');
 
     clearSelection();
@@ -585,8 +703,8 @@ function clearSelection() {
 function handleFaceComplete(operation) {
     completedFaces.add(operation);
 
-    // Bonus points for completing a face
-    const faceBonus = 50;
+    // Bonus points for completing a face (scaled by level)
+    const faceBonus = 50 * currentLevel;
     score += faceBonus;
     updateScoreDisplay();
 
@@ -643,6 +761,10 @@ function rotateRight() {
 // Display Updates
 // ============================================
 
+function updateLevelDisplay() {
+    levelValue.textContent = currentLevel;
+}
+
 function updateScoreDisplay() {
     scoreValue.textContent = score;
 }
@@ -679,6 +801,7 @@ function setStatus(message) {
 
 // ============================================
 // Timer Functions
+// FUTURE: Could add time bonuses or time attack modes here
 // ============================================
 
 function startTimer() {
@@ -703,8 +826,9 @@ function stopTimer() {
 // ============================================
 
 function showLevelCompleteModal(operation) {
+    const faceBonus = 50 * currentLevel;
     document.getElementById('completed-operation').textContent = OPERATIONS[operation].name;
-    document.getElementById('level-bonus').textContent = '+50';
+    document.getElementById('level-bonus').textContent = `+${faceBonus}`;
     levelCompleteModal.classList.add('active');
 }
 
@@ -715,6 +839,15 @@ function hideLevelCompleteModal() {
 function showPyramidCompleteModal() {
     document.getElementById('final-score').textContent = score;
     document.getElementById('final-time').textContent = timerValue.textContent;
+
+    // Update level-up message
+    const levelUpMsg = document.getElementById('level-up-message');
+    if (levelUpMsg) {
+        const nextLevel = currentLevel + 1;
+        const nextLevelName = getLevelName(nextLevel);
+        levelUpMsg.textContent = `Level Up! Ready for Level ${nextLevel} (${nextLevelName})?`;
+    }
+
     pyramidCompleteModal.classList.add('active');
 }
 
@@ -724,6 +857,7 @@ function hidePyramidCompleteModal() {
 
 // ============================================
 // Sound Functions (Placeholders)
+// FUTURE: Add actual sound effects here
 // ============================================
 
 function toggleSound() {
@@ -740,6 +874,7 @@ function toggleMusic() {
 
 function playSound(soundName) {
     if (!soundEnabled) return;
+    // FUTURE: Implement actual sound playback
     console.log('Play sound:', soundName);
 }
 
@@ -750,7 +885,7 @@ function playSound(soundName) {
 newGameBtn.addEventListener('click', () => {
     hideLevelCompleteModal();
     hidePyramidCompleteModal();
-    initPyramid();
+    startNewGame();
 });
 
 rotateLeftBtn.addEventListener('click', rotateLeft);
@@ -764,9 +899,18 @@ levelContinueBtn.addEventListener('click', () => {
     rotateRight();
 });
 
+// Next Level button - advance to harder difficulty
+if (nextLevelBtn) {
+    nextLevelBtn.addEventListener('click', () => {
+        hidePyramidCompleteModal();
+        advanceToNextLevel();
+    });
+}
+
+// Play Again button - restart at level 1
 playAgainBtn.addEventListener('click', () => {
     hidePyramidCompleteModal();
-    initPyramid();
+    startNewGame();
 });
 
 document.addEventListener('keydown', (e) => {

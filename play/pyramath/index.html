@@ -28,6 +28,10 @@
 
     <div id="game-container">
         <header id="top-bar">
+            <div class="stat-box level-box">
+                <span class="stat-label">Level</span>
+                <span id="level-value">1</span>
+            </div>
             <div class="stat-box">
                 <span class="stat-label">Score</span>
                 <span id="score-value">0</span>
@@ -82,9 +86,11 @@
         <div class="modal-content">
             <h2>🏆 Pyramid Complete! 🏆</h2>
             <p>You solved all four faces!</p>
-            <p>Final Score: <span id="final-score">0</span></p>
-            <p>Total Time: <span id="final-time">0:00</span></p>
-            <button id="play-again-btn" class="modal-btn">Play Again</button>
+            <p>Score: <span id="final-score">0</span></p>
+            <p>Time: <span id="final-time">0:00</span></p>
+            <p id="level-up-message" class="level-up-text">Level Up! New challenge unlocked!</p>
+            <button id="next-level-btn" class="modal-btn">Next Level</button>
+            <button id="play-again-btn" class="modal-btn modal-btn-secondary">Restart (Level 1)</button>
         </div>
     </div>
 
