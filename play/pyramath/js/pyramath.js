@@ -373,10 +373,11 @@ function setInitialTarget(faceElement, operation) {
             if (validTargets.length === 0) validTargets = possibleTargets; // fallback
         }
 
-        // For division, prefer targets > 1 to avoid trivial answers
+        // For division, targets must be > 0 (0 is impossible) and prefer > 1
         if (operation === 'divide') {
-            const nonTrivial = possibleTargets.filter(t => t > 1);
-            if (nonTrivial.length > 0) validTargets = nonTrivial;
+            const nonZero = possibleTargets.filter(t => t > 0);
+            const nonTrivial = nonZero.filter(t => t > 1);
+            validTargets = nonTrivial.length > 0 ? nonTrivial : nonZero;
         }
 
         const target = validTargets[randomInt(0, validTargets.length - 1)];
@@ -483,11 +484,8 @@ function initPyramid(keepScore = false) {
 }
 
 function getLevelName(level) {
-    if (level === 1) return 'Warm-up';
-    if (level <= 3) return '4th Grade';
-    if (level <= 6) return '5th Grade';
-    if (level <= 9) return '6th Grade';
-    return 'Math Master';
+    const names = ['Warm-up', '4th Grade', '5th Grade', '6th Grade', 'Math Master'];
+    return names[Math.min(level - 1, names.length - 1)];
 }
 
 function startNewGame() {
@@ -495,13 +493,26 @@ function startNewGame() {
     initPyramid(false);
 }
 
+const MAX_LEVEL = 5;
+
 function advanceToNextLevel() {
+    if (currentLevel >= MAX_LEVEL) {
+        // Already at max level - just restart same level
+        setFeedback(`You've mastered Level ${MAX_LEVEL}! Play again for a higher score!`, false);
+        initPyramid(true);
+        return;
+    }
+
     currentLevel++;
     const levelBonus = 100 * currentLevel;
     score += levelBonus;
     initPyramid(true);
 
-    setFeedback(`Level Up! Welcome to Level ${currentLevel}! (+${levelBonus} bonus)`, false);
+    if (currentLevel === MAX_LEVEL) {
+        setFeedback(`Level Up! Welcome to Level ${currentLevel} - FINAL LEVEL! (+${levelBonus} bonus)`, false);
+    } else {
+        setFeedback(`Level Up! Welcome to Level ${currentLevel}! (+${levelBonus} bonus)`, false);
+    }
 
     if (levelValue) {
         levelValue.classList.add('level-up-animation');
@@ -630,11 +641,12 @@ function updateCapstoneToNewTarget(operation) {
         capstone.textContent = '✓';
         handleFaceComplete(operation);
     } else {
-        // For division, prefer non-trivial targets
+        // For division, targets must be > 0 (0 is impossible) and prefer > 1
         let validTargets = possibleTargets;
         if (operation === 'divide') {
-            const nonTrivial = possibleTargets.filter(t => t > 1);
-            if (nonTrivial.length > 0) validTargets = nonTrivial;
+            const nonZero = possibleTargets.filter(t => t > 0);
+            const nonTrivial = nonZero.filter(t => t > 1);
+            validTargets = nonTrivial.length > 0 ? nonTrivial : nonZero;
         }
 
         // For addition, prefer larger targets
