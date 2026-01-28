@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Mathamid</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#C9A227">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+  <div id="game-container">
+    <header id="top-bar">
+      <div id="score-section">
+        <div id="score-display">Score: <span id="score-value">0</span></div>
+        <div id="streak-display">Streak: <span id="streak-value">0</span>🔥</div>
+      </div>
+      <div id="timer-display">Time: <span id="timer-value">0:00</span></div>
+      <div id="level-display">Level <span id="level-value">1</span></div>
+    </header>
+
+    <!-- Operation indicator -->
+    <div id="operation-display">
+      <span id="operation-symbol">+</span>
+      <span id="operation-name">Addition</span>
+    </div>
+
+    <!-- 3D Pyramid Container -->
+    <div id="pyramid-scene">
+      <div id="pyramid">
+        <!-- Front face: Addition -->
+        <div class="pyramid-face face-front" data-operation="addition">
+          <div class="capstone" id="capstone-add">
+            <span class="cap-number">12</span>
+          </div>
+          <div class="stone-row row-2">
+            <div class="stone" data-value="5">5</div>
+            <div class="stone" data-value="7">7</div>
+          </div>
+          <div class="stone-row row-3">
+            <div class="stone" data-value="3">3</div>
+            <div class="stone" data-value="8">8</div>
+            <div class="stone" data-value="4">4</div>
+          </div>
+          <div class="stone-row row-4">
+            <div class="stone" data-value="9">9</div>
+            <div class="stone" data-value="2">2</div>
+            <div class="stone" data-value="6">6</div>
+            <div class="stone" data-value="1">1</div>
+          </div>
+          <div class="stone-row row-5">
+            <div class="stone" data-value="10">10</div>
+            <div class="stone" data-value="11">11</div>
+            <div class="stone" data-value="15">15</div>
+            <div class="stone" data-value="13">13</div>
+            <div class="stone" data-value="14">14</div>
+          </div>
+        </div>
+
+        <!-- Right face: Subtraction -->
+        <div class="pyramid-face face-right" data-operation="subtraction">
+          <div class="capstone" id="capstone-sub">
+            <span class="cap-number">5</span>
+          </div>
+          <div class="stone-row row-2">
+            <div class="stone" data-value="12">12</div>
+            <div class="stone" data-value="7">7</div>
+          </div>
+          <div class="stone-row row-3">
+            <div class="stone" data-value="15">15</div>
+            <div class="stone" data-value="10">10</div>
+            <div class="stone" data-value="8">8</div>
+          </div>
+          <div class="stone-row row-4">
+            <div class="stone" data-value="20">20</div>
+            <div class="stone" data-value="3">3</div>
+            <div class="stone" data-value="14">14</div>
+            <div class="stone" data-value="9">9</div>
+          </div>
+          <div class="stone-row row-5">
+            <div class="stone" data-value="18">18</div>
+            <div class="stone" data-value="13">13</div>
+            <div class="stone" data-value="6">6</div>
+            <div class="stone" data-value="11">11</div>
+            <div class="stone" data-value="4">4</div>
+          </div>
+        </div>
+
+        <!-- Back face: Multiplication -->
+        <div class="pyramid-face face-back" data-operation="multiplication">
+          <div class="capstone" id="capstone-mul">
+            <span class="cap-number">24</span>
+          </div>
+          <div class="stone-row row-2">
+            <div class="stone" data-value="6">6</div>
+            <div class="stone" data-value="4">4</div>
+          </div>
+          <div class="stone-row row-3">
+            <div class="stone" data-value="3">3</div>
+            <div class="stone" data-value="8">8</div>
+            <div class="stone" data-value="2">2</div>
+          </div>
+          <div class="stone-row row-4">
+            <div class="stone" data-value="12">12</div>
+            <div class="stone" data-value="5">5</div>
+            <div class="stone" data-value="9">9</div>
+            <div class="stone" data-value="7">7</div>
+          </div>
+          <div class="stone-row row-5">
+            <div class="stone" data-value="10">10</div>
+            <div class="stone" data-value="11">11</div>
+            <div class="stone" data-value="1">1</div>
+            <div class="stone" data-value="15">15</div>
+            <div class="stone" data-value="14">14</div>
+          </div>
+        </div>
+
+        <!-- Left face: Division -->
+        <div class="pyramid-face face-left" data-operation="division">
+          <div class="capstone" id="capstone-div">
+            <span class="cap-number">4</span>
+          </div>
+          <div class="stone-row row-2">
+            <div class="stone" data-value="20">20</div>
+            <div class="stone" data-value="5">5</div>
+          </div>
+          <div class="stone-row row-3">
+            <div class="stone" data-value="36">36</div>
+            <div class="stone" data-value="9">9</div>
+            <div class="stone" data-value="8">8</div>
+          </div>
+          <div class="stone-row row-4">
+            <div class="stone" data-value="24">24</div>
+            <div class="stone" data-value="6">6</div>
+            <div class="stone" data-value="12">12</div>
+            <div class="stone" data-value="3">3</div>
+          </div>
+          <div class="stone-row row-5">
+            <div class="stone" data-value="28">28</div>
+            <div class="stone" data-value="7">7</div>
+            <div class="stone" data-value="16">16</div>
+            <div class="stone" data-value="32">32</div>
+            <div class="stone" data-value="2">2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls">
+      <button id="new-game-btn">New Game</button>
+      <button id="rotate-left-btn">◀ Rotate</button>
+      <button id="rotate-right-btn">Rotate ▶</button>
+      <button class="audio-btn" id="sfxToggle" title="Sound Effects">🔊</button>
+      <button class="audio-btn" id="bgmToggle" title="Background Music">🎵</button>
+    </div>
+
+    <!-- Status/Feedback -->
+    <div id="status" aria-live="polite">Select two stones that equal the capstone!</div>
+  </div>
+
+  <!-- Feedback popup -->
+  <div id="feedback" role="status" aria-live="polite"></div>
+
+  <!-- Level complete modal -->
+  <div id="level-complete-modal" class="modal">
+    <div class="modal-content">
+      <h2>🏆 Side Complete! 🏆</h2>
+      <p>You completed <span id="complete-operation">Addition</span>!</p>
+      <p>Score: <span id="complete-score">0</span></p>
+      <button id="next-side-btn">Next Side →</button>
+    </div>
+  </div>
+
+  <!-- Pyramid complete modal -->
+  <div id="pyramid-complete-modal" class="modal">
+    <div class="modal-content">
+      <h2>👑 PYRAMID COMPLETE! 👑</h2>
+      <p>Final Score: <span id="final-score">0</span></p>
+      <p>Time: <span id="final-time">0:00</span></p>
+      <p>Accuracy: <span id="final-accuracy">0%</span></p>
+      <button id="next-level-btn">Next Level →</button>
+    </div>
+  </div>
+
+  <script src="js/mathamid.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "Mathamid - Math Pyramid",
+  "short_name": "Mathamid",
+  "description": "Learn mental math by solving pyramid puzzles! Match stone pairs to the capstone using addition, subtraction, multiplication, and division.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#8B4513",
+  "theme_color": "#C9A227",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["games", "education"],
+  "lang": "en"
+}
