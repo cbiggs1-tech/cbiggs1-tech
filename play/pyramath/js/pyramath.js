@@ -496,16 +496,31 @@ function startNewGame() {
 }
 
 function advanceToNextLevel() {
-    currentLevel++;
-    const levelBonus = 100 * currentLevel;
-    score += levelBonus;
-    initPyramid(true);
+    console.log('advanceToNextLevel called, current level:', currentLevel);
+    alert('advanceToNextLevel starting! Current level: ' + currentLevel);
 
-    setFeedback(`Level Up! Welcome to Level ${currentLevel}! (+${levelBonus} bonus)`, false);
+    try {
+        currentLevel++;
+        console.log('Level incremented to:', currentLevel);
 
-    if (levelValue) {
-        levelValue.classList.add('level-up-animation');
-        setTimeout(() => levelValue.classList.remove('level-up-animation'), 1000);
+        const levelBonus = 100 * currentLevel;
+        score += levelBonus;
+        console.log('Score updated:', score);
+
+        initPyramid(true);
+        console.log('initPyramid completed');
+
+        setFeedback(`Level Up! Welcome to Level ${currentLevel}! (+${levelBonus} bonus)`, false);
+
+        if (levelValue) {
+            levelValue.classList.add('level-up-animation');
+            setTimeout(() => levelValue.classList.remove('level-up-animation'), 1000);
+        }
+
+        alert('Level advanced to: ' + currentLevel);
+    } catch (error) {
+        console.error('Error in advanceToNextLevel:', error);
+        alert('ERROR: ' + error.message);
     }
 }
 
@@ -964,14 +979,19 @@ function initEventListeners() {
     if (levelBox) {
         levelBox.style.cursor = 'pointer';
         levelBox.addEventListener('click', () => {
+            alert('Level box clicked!');
             console.log('Level box clicked - advancing level');
             advanceToNextLevel();
         });
+        console.log('Level box click handler attached');
+    } else {
+        console.error('Level box NOT FOUND');
     }
 
     document.addEventListener('keydown', (e) => {
         // Press 'L' to advance level (for testing)
         if (e.key === 'l' || e.key === 'L') {
+            alert('L key pressed!');
             console.log('L key pressed - advancing level');
             advanceToNextLevel();
             return;
