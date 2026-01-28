@@ -930,11 +930,17 @@ function initEventListeners() {
 
     // IMPORTANT: Next Level button advances to harder difficulty
     if (nextLevelBtn) {
-        nextLevelBtn.addEventListener('click', () => {
-            console.log('Next Level clicked!'); // Debug
+        console.log('Next Level button found, attaching listener');
+        nextLevelBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Next Level clicked!');
+            alert('Level Up! Going to level ' + (currentLevel + 1));
             hidePyramidCompleteModal();
             advanceToNextLevel();
         });
+    } else {
+        console.error('Next Level button NOT FOUND!');
     }
 
     // Play Again button restarts at level 1
