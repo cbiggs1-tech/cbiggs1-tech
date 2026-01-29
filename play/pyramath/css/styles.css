@@ -32,7 +32,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #87CEEB;
+    background: #D8C8A0; /* Light tan - matches sand so gaps show sand, not water */
 }
 
 /* ============================================
