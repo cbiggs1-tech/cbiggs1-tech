@@ -32,7 +32,7 @@ const OPERATIONS = {
     divide: {
         symbol: '÷',
         name: 'Division',
-        // Always larger / smaller, floor result
+        // Always larger / smaller - MUST divide evenly for educational correctness
         fn: (a, b) => {
             const dividend = Math.max(a, b);
             const divisor = Math.max(1, Math.min(a, b));
@@ -76,12 +76,12 @@ function getLevelRanges(level, operation) {
             { min: 6, max: 15 },      // Level 5: 6-15
         ],
         divide: [
-            // For division, we generate factor pairs
-            { minFactor: 2, maxFactor: 6, minQuotient: 2, maxQuotient: 9 },    // L1
-            { minFactor: 2, maxFactor: 9, minQuotient: 2, maxQuotient: 12 },   // L2
-            { minFactor: 3, maxFactor: 10, minQuotient: 3, maxQuotient: 12 },  // L3
-            { minFactor: 4, maxFactor: 12, minQuotient: 4, maxQuotient: 15 },  // L4
-            { minFactor: 5, maxFactor: 15, minQuotient: 5, maxQuotient: 18 },  // L5
+            // Division uses prime divisors to guarantee unique solution paths
+            { primes: [2, 3, 5, 7, 11, 13, 17], quotients: [2, 3, 4, 5] },      // L1
+            { primes: [2, 3, 5, 7, 11, 13, 17, 19], quotients: [2, 3, 4, 5, 6] }, // L2
+            { primes: [3, 5, 7, 11, 13, 17, 19, 23], quotients: [2, 3, 4, 5, 6, 7] }, // L3
+            { primes: [5, 7, 11, 13, 17, 19, 23, 29], quotients: [2, 3, 4, 5, 6, 7, 8] }, // L4
+            { primes: [7, 11, 13, 17, 19, 23, 29, 31], quotients: [2, 3, 4, 5, 6, 7, 8, 9] }, // L5
         ]
     };
 
@@ -109,6 +109,10 @@ let isMultiplayer = false;
 let currentPlayer = 1;
 let player1Score = 0;
 let player2Score = 0;
+
+// Division pairs - stored during generation for validation
+// This ensures only the intended pairs are accepted (prevents cross-pairing)
+let validDivisionPairs = [];
 
 // ============================================
 // Audio System (Web Audio API)
@@ -177,11 +181,15 @@ function playSoundEffect(soundName) {
             playChord([523.25, 659.25, 783.99], 0.4, 'triangle', 0.3);
             break;
         case 'pyramidComplete':
-            // Triumphant: 5 notes
-            const notes = [523.25, 659.25, 783.99, 880, 1046.5];
-            notes.forEach((freq, i) => {
-                setTimeout(() => playTone(freq, 0.3, 'triangle', 0.25), i * 120);
+            // Extended triumphant fanfare: 7 notes ascending + final chord
+            const fanfareNotes = [523.25, 659.25, 783.99, 880, 1046.5, 1318.5, 1568];
+            fanfareNotes.forEach((freq, i) => {
+                setTimeout(() => playTone(freq, 0.35, 'triangle', 0.28), i * 100);
             });
+            // Final triumphant chord after arpeggio
+            setTimeout(() => {
+                playChord([1046.5, 1318.5, 1568], 0.7, 'triangle', 0.35);
+            }, fanfareNotes.length * 100 + 50);
             break;
         case 'select':
             playTone(440, 0.05, 'sine', 0.15);
@@ -341,26 +349,102 @@ function generateMultiplicationNumbers(level) {
     return grid;
 }
 
+/**
+ * Generate division numbers using a GUARANTEED solvable strategy:
+ * - Use prime divisors so each dividend is ONLY divisible by its intended divisor
+ * - This eliminates cross-pairing and ensures exactly one valid solution path
+ * - All 7 pairs will always be solvable with clean (no remainder) division
+ */
 function generateDivisionNumbers(level) {
     const range = getLevelRanges(level, 'divide');
     const grid = [];
     const allNumbers = [];
     const usedNumbers = new Set();
+    const usedDivisors = new Set();
 
-    for (let i = 0; i < 14; i++) {
-        let num;
-        let attempts = 0;
-        do {
-            const factor1 = randomInt(range.minFactor, range.maxFactor);
-            const factor2 = randomInt(range.minQuotient, range.maxQuotient);
-            num = factor1 * factor2;
-            attempts++;
-        } while (usedNumbers.has(num) && attempts < 20);
+    // Get available primes and quotients for this level
+    const availablePrimes = [...range.primes];
+    const availableQuotients = [...range.quotients];
 
-        usedNumbers.add(num);
-        allNumbers.push(num);
+    // Shuffle primes for variety
+    shuffleArray(availablePrimes);
+
+    // Generate 7 pairs: each pair is (prime, prime × quotient)
+    // Using primes as divisors ensures no cross-divisibility between pairs
+    const pairs = [];
+
+    for (let i = 0; i < 7 && availablePrimes.length > 0; i++) {
+        const divisor = availablePrimes.pop();
+
+        // Find a quotient that gives a unique dividend
+        let quotient = null;
+        let dividend = null;
+
+        // Shuffle quotients for variety
+        const shuffledQuotients = shuffleArray([...availableQuotients]);
+
+        for (const q of shuffledQuotients) {
+            const d = divisor * q;
+            // Ensure dividend is unique and not equal to any divisor
+            if (!usedNumbers.has(d) && !usedDivisors.has(d) && d !== divisor) {
+                quotient = q;
+                dividend = d;
+                break;
+            }
+        }
+
+        if (dividend === null) {
+            // Fallback: try larger quotients
+            for (let q = 2; q <= 12; q++) {
+                const d = divisor * q;
+                if (!usedNumbers.has(d) && !usedDivisors.has(d) && d !== divisor) {
+                    quotient = q;
+                    dividend = d;
+                    break;
+                }
+            }
+        }
+
+        if (dividend !== null) {
+            usedNumbers.add(divisor);
+            usedNumbers.add(dividend);
+            usedDivisors.add(divisor);
+            pairs.push({ divisor, dividend, quotient });
+        }
     }
 
+    // If we couldn't generate 7 pairs, fill with fallback
+    // This uses simple factor pairs that are guaranteed to work
+    while (pairs.length < 7) {
+        const fallbackDivisors = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+        for (const d of fallbackDivisors) {
+            if (usedNumbers.has(d)) continue;
+            for (let q = 2; q <= 10; q++) {
+                const dividend = d * q;
+                if (!usedNumbers.has(dividend) && dividend !== d) {
+                    usedNumbers.add(d);
+                    usedNumbers.add(dividend);
+                    pairs.push({ divisor: d, dividend, quotient: q });
+                    break;
+                }
+            }
+            if (pairs.length >= 7) break;
+        }
+        if (pairs.length < 7) {
+            // Emergency: just add any valid pair
+            const d = pairs.length + 2;
+            const dividend = d * 2;
+            pairs.push({ divisor: d, dividend, quotient: 2 });
+        }
+    }
+
+    // Collect all numbers from pairs
+    pairs.forEach(pair => {
+        allNumbers.push(pair.divisor);
+        allNumbers.push(pair.dividend);
+    });
+
+    // Shuffle so pairs aren't adjacent
     shuffleArray(allNumbers);
 
     let idx = 0;
@@ -371,6 +455,18 @@ function generateDivisionNumbers(level) {
         }
     }
     grid[0] = [0];
+
+    // Store pairs for validation during gameplay
+    // This prevents cross-pairing (e.g., 14÷2 when intended pairs are 14÷7 and 6÷2)
+    validDivisionPairs = pairs.map(p => ({
+        dividend: p.dividend,
+        divisor: p.divisor,
+        quotient: p.quotient
+    }));
+
+    // Debug: log the pairs for verification
+    console.log('Division pairs generated:', pairs.map(p => `${p.dividend}÷${p.divisor}=${p.quotient}`).join(', '));
+
     return grid;
 }
 
@@ -435,14 +531,23 @@ function setInitialTarget(faceElement, operation) {
             if (validTargets.length === 0) validTargets = possibleTargets;
         }
 
-        // For division, filter out 0 targets (impossible)
+        // For division, filter out 0 and 1 targets (trivial)
         if (operation === 'divide') {
             const nonZero = possibleTargets.filter(t => t > 0);
             const nonTrivial = nonZero.filter(t => t > 1);
             validTargets = nonTrivial.length > 0 ? nonTrivial : (nonZero.length > 0 ? nonZero : possibleTargets);
         }
 
-        const target = validTargets[randomInt(0, validTargets.length - 1)];
+        // Prefer targets with exactly one valid pair (makes puzzle more interesting)
+        const singleSolutionTargets = validTargets.filter(t => {
+            const pairs = findPairsForTarget(faceElement, operation, t);
+            return pairs.length === 1;
+        });
+
+        // Use single-solution targets if available, otherwise fall back
+        const finalTargets = singleSolutionTargets.length > 0 ? singleSolutionTargets : validTargets;
+
+        const target = finalTargets[randomInt(0, finalTargets.length - 1)];
         const capstone = faceElement.querySelector('.stone-row[data-row="0"] .stone');
         capstone.dataset.value = target;
         capstone.textContent = target;
@@ -458,9 +563,21 @@ function setInitialTarget(faceElement, operation) {
 }
 
 /**
+ * Check if a division pair matches one of the generated valid pairs
+ * This prevents cross-pairing where numbers from different intended pairs
+ * could accidentally form valid division equations
+ */
+function isValidGeneratedDivisionPair(a, b) {
+    const dividend = Math.max(a, b);
+    const divisor = Math.min(a, b);
+    return validDivisionPairs.some(p =>
+        p.dividend === dividend && p.divisor === divisor
+    );
+}
+
+/**
  * Get all possible results from pairing unsolved stones
- * CRITICAL FIX: Use the same operation function for all operations
- * This ensures division pairs match what checkSelectedPair accepts
+ * For division: ONLY include pairs that match the generated valid pairs
  */
 function getAllPossibleResults(faceElement, operation) {
     const unsolvedStones = faceElement.querySelectorAll('.stone:not(.solved):not(.target)');
@@ -472,15 +589,28 @@ function getAllPossibleResults(faceElement, operation) {
         for (let j = i + 1; j < stones.length; j++) {
             const a = parseInt(stones[i].dataset.value);
             const b = parseInt(stones[j].dataset.value);
-            // Use the same operation function for consistency
-            const result = opFn(a, b);
-            results.add(result);
+
+            if (operation === 'divide') {
+                // Only include pairs that match the generated valid pairs
+                // This prevents cross-pairing issues
+                if (isValidGeneratedDivisionPair(a, b)) {
+                    const dividend = Math.max(a, b);
+                    const divisor = Math.min(a, b);
+                    results.add(dividend / divisor);
+                }
+            } else {
+                results.add(opFn(a, b));
+            }
         }
     }
 
     return Array.from(results);
 }
 
+/**
+ * Find all stone pairs that produce the target value
+ * For division: ONLY count pairs that match the generated valid pairs
+ */
 function findPairsForTarget(faceElement, operation, target) {
     const unsolvedStones = faceElement.querySelectorAll('.stone:not(.solved):not(.target)');
     const pairs = [];
@@ -491,10 +621,22 @@ function findPairsForTarget(faceElement, operation, target) {
         for (let j = i + 1; j < stones.length; j++) {
             const a = parseInt(stones[i].dataset.value);
             const b = parseInt(stones[j].dataset.value);
-            const result = opFn(a, b);
 
-            if (result === target) {
-                pairs.push([stones[i], stones[j], a, b]);
+            if (operation === 'divide') {
+                // Only count pairs that match the generated valid pairs
+                if (isValidGeneratedDivisionPair(a, b)) {
+                    const dividend = Math.max(a, b);
+                    const divisor = Math.min(a, b);
+                    const result = dividend / divisor;
+                    if (result === target) {
+                        pairs.push([stones[i], stones[j], a, b]);
+                    }
+                }
+            } else {
+                const result = opFn(a, b);
+                if (result === target) {
+                    pairs.push([stones[i], stones[j], a, b]);
+                }
             }
         }
     }
@@ -558,6 +700,8 @@ function advanceToNextLevel() {
     }
 
     currentLevel++;
+    updateLevelDisplay(); // Ensure level display updates immediately
+
     const levelBonus = 100 * currentLevel;
     score += levelBonus;
     if (isMultiplayer) {
@@ -624,14 +768,71 @@ function handleStoneClick(stone) {
 
 function checkSelectedPair() {
     const [stoneA, stoneB] = selectedStones;
-    const valA = parseInt(stoneA.dataset.value);
-    const valB = parseInt(stoneB.dataset.value);
+    const valA = parseInt(stoneA.dataset.value);  // First selected
+    const valB = parseInt(stoneB.dataset.value);  // Second selected
     const operation = FACE_ORDER[currentFaceIndex];
     const opData = OPERATIONS[operation];
     const faceElement = faces[operation];
 
     const capstone = faceElement.querySelector('.stone-row[data-row="0"] .stone');
     const target = parseInt(capstone.dataset.value);
+
+    // For subtraction, order matters: first - second
+    // If first < second, result would be negative (wrong order)
+    if (operation === 'subtract') {
+        if (valA < valB) {
+            streak = 0;
+            updateStreakDisplay();
+            setFeedback(`✗ ${valA} − ${valB} = negative! Select larger number first.`, true);
+            shakeStones(selectedStones);
+            playSoundEffect('wrong');
+            clearSelection();
+            return;
+        }
+    }
+
+    // For division, order matters AND must be a valid generated pair
+    // This teaches correct math and prevents cross-pairing exploits
+    if (operation === 'divide') {
+        if (valA < valB) {
+            streak = 0;
+            updateStreakDisplay();
+            setFeedback(`✗ ${valA} ÷ ${valB} is less than 1! Select larger number first.`, true);
+            shakeStones(selectedStones);
+            playSoundEffect('wrong');
+            clearSelection();
+            return;
+        }
+        if (valB === 0) {
+            streak = 0;
+            updateStreakDisplay();
+            setFeedback(`✗ Cannot divide by zero!`, true);
+            shakeStones(selectedStones);
+            playSoundEffect('wrong');
+            clearSelection();
+            return;
+        }
+        // MUST divide evenly - this is educational!
+        if (valA % valB !== 0) {
+            streak = 0;
+            updateStreakDisplay();
+            setFeedback(`✗ ${valA} ÷ ${valB} doesn't divide evenly! Try another pair.`, true);
+            shakeStones(selectedStones);
+            playSoundEffect('wrong');
+            clearSelection();
+            return;
+        }
+        // MUST be one of the generated valid pairs (prevents cross-pairing)
+        if (!isValidGeneratedDivisionPair(valA, valB)) {
+            streak = 0;
+            updateStreakDisplay();
+            setFeedback(`✗ ${valA} ÷ ${valB} = ${valA / valB}, but these stones aren't a matching pair!`, true);
+            shakeStones(selectedStones);
+            playSoundEffect('wrong');
+            clearSelection();
+            return;
+        }
+    }
 
     const result = opData.fn(valA, valB);
 
@@ -694,45 +895,82 @@ function updateCapstoneToNewTarget(operation) {
     const faceElement = faces[operation];
     const possibleTargets = getAllPossibleResults(faceElement, operation);
     const capstone = faceElement.querySelector('.stone-row[data-row="0"] .stone');
+    const remainingStones = faceElement.querySelectorAll('.stone:not(.solved):not(.target)');
 
-    if (possibleTargets.length === 0) {
+    // Complete face when all stones are solved
+    if (remainingStones.length === 0) {
+        console.log(`Face complete: ${operation} - all 7 pairs solved perfectly!`);
         capstone.classList.add('solved');
         capstone.textContent = '✓';
         handleFaceComplete(operation);
-    } else {
-        let validTargets = possibleTargets;
-
-        // For division, filter out 0 targets
-        if (operation === 'divide') {
-            const nonZero = possibleTargets.filter(t => t > 0);
-            const nonTrivial = nonZero.filter(t => t > 1);
-            validTargets = nonTrivial.length > 0 ? nonTrivial : (nonZero.length > 0 ? nonZero : possibleTargets);
-        }
-
-        if (operation === 'add') {
-            const unsolvedStones = faceElement.querySelectorAll('.stone:not(.solved):not(.target)');
-            const maxStone = Math.max(...Array.from(unsolvedStones).map(s => parseInt(s.dataset.value)));
-            const sensibleTargets = possibleTargets.filter(t => t >= maxStone);
-            if (sensibleTargets.length > 0) validTargets = sensibleTargets;
-        }
-
-        const newTarget = validTargets[randomInt(0, validTargets.length - 1)];
-        capstone.dataset.value = newTarget;
-        capstone.textContent = newTarget;
-
-        const numStr = String(newTarget);
-        capstone.classList.remove('tiny-text', 'small-text');
-        if (numStr.length >= 5) {
-            capstone.classList.add('tiny-text');
-        } else if (numStr.length >= 4) {
-            capstone.classList.add('small-text');
-        }
-
-        capstone.classList.add('target-changed');
-        setTimeout(() => capstone.classList.remove('target-changed'), 500);
-
-        setStatus(`New target: ${newTarget}! Find a matching pair.`);
+        return;
     }
+
+    // If only 1 stone remains (shouldn't happen with good generation), force complete
+    if (remainingStones.length === 1) {
+        console.log(`Face complete: ${operation} - 1 orphan stone (shouldn't happen)`);
+        remainingStones[0].classList.add('solved');
+        capstone.classList.add('solved');
+        capstone.textContent = '✓';
+        handleFaceComplete(operation);
+        return;
+    }
+
+    // If no valid pairs exist (shouldn't happen with prime-based generation)
+    if (possibleTargets.length === 0) {
+        const stoneValues = Array.from(remainingStones).map(s => s.dataset.value).join(', ');
+        console.log(`Face complete: ${operation} - no valid pairs among [${stoneValues}] (generation issue)`);
+
+        // Mark remaining stones as solved and complete the face
+        remainingStones.forEach(stone => stone.classList.add('solved'));
+        capstone.classList.add('solved');
+        capstone.textContent = '✓';
+        setFeedback(`Face complete!`, false);
+        handleFaceComplete(operation);
+        return;
+    }
+
+    // Normal case: pick a new target from possible results
+    let validTargets = possibleTargets;
+
+    // For division, filter out trivial targets (0, 1)
+    if (operation === 'divide') {
+        const nonZero = possibleTargets.filter(t => t > 0);
+        const nonTrivial = nonZero.filter(t => t > 1);
+        validTargets = nonTrivial.length > 0 ? nonTrivial : (nonZero.length > 0 ? nonZero : possibleTargets);
+    }
+
+    if (operation === 'add') {
+        const unsolvedStones = faceElement.querySelectorAll('.stone:not(.solved):not(.target)');
+        const maxStone = Math.max(...Array.from(unsolvedStones).map(s => parseInt(s.dataset.value)));
+        const sensibleTargets = possibleTargets.filter(t => t >= maxStone);
+        if (sensibleTargets.length > 0) validTargets = sensibleTargets;
+    }
+
+    // Prefer targets with exactly one valid pair
+    const singleSolutionTargets = validTargets.filter(t => {
+        const pairs = findPairsForTarget(faceElement, operation, t);
+        return pairs.length === 1;
+    });
+
+    const finalTargets = singleSolutionTargets.length > 0 ? singleSolutionTargets : validTargets;
+
+    const newTarget = finalTargets[randomInt(0, finalTargets.length - 1)];
+    capstone.dataset.value = newTarget;
+    capstone.textContent = newTarget;
+
+    const numStr = String(newTarget);
+    capstone.classList.remove('tiny-text', 'small-text');
+    if (numStr.length >= 5) {
+        capstone.classList.add('tiny-text');
+    } else if (numStr.length >= 4) {
+        capstone.classList.add('small-text');
+    }
+
+    capstone.classList.add('target-changed');
+    setTimeout(() => capstone.classList.remove('target-changed'), 500);
+
+    setStatus(`New target: ${newTarget}! Find a matching pair.`);
 }
 
 function solveStone(stone) {
