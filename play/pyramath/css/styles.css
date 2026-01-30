@@ -1086,8 +1086,8 @@ body {
     align-items: center;
     flex-wrap: wrap;
     justify-content: center;
-    /* Position just below bottom game blocks (about one block of space) */
-    margin-top: 50px;
+    /* Position just below bottom game blocks */
+    margin-top: 0;
     padding: 6px 0;
 }
 
