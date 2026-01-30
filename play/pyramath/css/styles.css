@@ -1052,42 +1052,76 @@ body {
         drop-shadow(1px 2px 1px rgba(60, 40, 20, 0.3));
 }
 
-/* Left edge stones - angled left side (25px offset for ~28° angle) */
+/* Left edge stones - angled left side with rounded corners */
 .stone-row:not([data-row="0"]) .stone:first-child {
     clip-path: polygon(
+        /* Rounded top-left angled corner */
+        20px 5%,
         25px 0%,
-        100% 0%,
-        100% 100%,
-        0% 100%
+        /* Top edge to rounded top-right */
+        96% 0%,
+        100% 4%,
+        /* Right side to rounded bottom-right */
+        100% 96%,
+        96% 100%,
+        /* Bottom edge to rounded bottom-left */
+        4% 100%,
+        0% 96%,
+        /* Left angled side */
+        0% 100%,
+        3% 94%
     );
 }
 
-/* Right edge stones - angled right side (25px offset for ~28° angle) */
+/* Right edge stones - angled right side with rounded corners */
 .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
     clip-path: polygon(
-        0% 0%,
-        calc(100% - 25px) 0%,
+        /* Rounded top-left */
+        4% 0%,
+        0% 4%,
+        /* Left side to rounded bottom-left */
+        0% 96%,
+        4% 100%,
+        /* Bottom edge to rounded bottom-right */
+        96% 100%,
+        100% 96%,
+        /* Right angled side */
         100% 100%,
-        0% 100%
+        97% 94%,
+        /* Rounded top-right angled corner */
+        calc(100% - 20px) 5%,
+        calc(100% - 25px) 0%
     );
 }
 
-/* Row 1 (2 stones) - both edges angled to match */
+/* Row 1 (2 stones) - both edges angled with rounded corners */
 .stone-row[data-row="1"] .stone:first-child {
     clip-path: polygon(
+        18px 5%,
         22px 0%,
-        100% 0%,
-        100% 100%,
-        0% 100%
+        96% 0%,
+        100% 4%,
+        100% 96%,
+        96% 100%,
+        4% 100%,
+        0% 96%,
+        0% 100%,
+        3% 94%
     );
 }
 
 .stone-row[data-row="1"] .stone:last-child {
     clip-path: polygon(
-        0% 0%,
-        calc(100% - 22px) 0%,
+        4% 0%,
+        0% 4%,
+        0% 96%,
+        4% 100%,
+        96% 100%,
+        100% 96%,
         100% 100%,
-        0% 100%
+        97% 94%,
+        calc(100% - 18px) 5%,
+        calc(100% - 22px) 0%
     );
 }
 
@@ -1646,11 +1680,23 @@ body {
     }
 
     .stone-row:not([data-row="0"]) .stone:first-child {
-        clip-path: polygon(22px 0%, 100% 0%, 100% 100%, 0% 100%);
+        clip-path: polygon(
+            18px 5%, 22px 0%,
+            96% 0%, 100% 4%,
+            100% 96%, 96% 100%,
+            4% 100%, 0% 96%,
+            0% 100%, 3% 94%
+        );
     }
 
     .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
-        clip-path: polygon(0% 0%, calc(100% - 22px) 0%, 100% 100%, 0% 100%);
+        clip-path: polygon(
+            4% 0%, 0% 4%,
+            0% 96%, 4% 100%,
+            96% 100%, 100% 96%,
+            100% 100%, 97% 94%,
+            calc(100% - 18px) 5%, calc(100% - 22px) 0%
+        );
     }
 
     #top-bar {
