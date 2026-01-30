@@ -1,6 +1,6 @@
-/* PyraMath - Photorealistic Egyptian Pyramid Theme v2.1 */
-/* Stunning, immersive, kid-friendly - with optional image textures */
-/* Images load progressively over CSS gradient fallbacks */
+/* PyraMath - Photorealistic Egyptian Pyramid Theme v3.0 */
+/* Full photorealistic mode with background image */
+/* Stones overlay on pyramid photo for immersive experience */
 
 * {
     margin: 0;
@@ -74,6 +74,7 @@ body {
 
 /* ============================================
    DESERT SCENE - Photorealistic Background
+   Uses full-screen pyramid/desert photo
    ============================================ */
 
 #desert-scene {
@@ -84,33 +85,21 @@ body {
     height: 100%;
     z-index: 0;
     overflow: hidden;
-}
-
-/* Sky with realistic gradient and subtle sun glow */
-/* Optional: Add desert-bg.jpg for photorealistic background */
-#sky {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 55%;
+    /* FULL SCREEN photorealistic background */
     background:
-        /* Sun glow overlay */
-        radial-gradient(ellipse 40% 30% at 75% 25%,
-            rgba(255, 240, 180, 0.5) 0%,
-            rgba(255, 220, 140, 0.2) 30%,
-            transparent 60%
-        ),
-        /* Optional desert background image - loads over gradient */
-        url('../img/desert-bg.jpg') center top / cover no-repeat,
-        /* Fallback gradient (shows while image loads or if missing) */
+        url('../img/desert-bg.jpg') center center / cover no-repeat,
+        /* Fallback gradient */
         linear-gradient(180deg,
             var(--sky-top) 0%,
-            var(--sky-mid) 40%,
-            #B8D4E8 65%,
-            var(--sky-bottom) 90%,
-            var(--sand-light) 100%
+            var(--sky-mid) 30%,
+            var(--sand-light) 60%,
+            var(--sand-mid) 100%
         );
+}
+
+/* Hide CSS-drawn sky when using photo background */
+#sky {
+    display: none;
 }
 
 /* Heat shimmer effect at horizon */
@@ -133,18 +122,13 @@ body {
     50% { opacity: 0.8; }
 }
 
+/* Hide CSS dunes when using photo background */
 #dunes {
-    position: absolute;
-    bottom: 15%;
-    left: 0;
-    width: 100%;
-    height: 45%;
+    display: none;
 }
 
 .dune {
-    position: absolute;
-    width: 100%;
-    bottom: 0;
+    display: none;
 }
 
 /* Distant dunes - left side with shadow variation */
@@ -203,12 +187,9 @@ body {
 }
 
 /* Sand floor with realistic texture */
+/* Hide CSS sand floor when using photo background */
 #sand-floor {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 22%;
+    display: none;
     background:
         /* Sand grain texture - diagonal lines */
         repeating-linear-gradient(
@@ -246,12 +227,9 @@ body {
    STONE RUINS with Hieroglyphics
    ============================================ */
 
+/* Hide CSS ruins when using photo background (ruins are in the photo) */
 .ruin {
-    position: fixed;
-    bottom: 0;
-    width: 85px;
-    height: 150px;
-    z-index: 2;
+    display: none;
     background:
         /* Sandstone crack texture */
         repeating-linear-gradient(
@@ -496,35 +474,18 @@ body {
     margin-top: 5px;
 }
 
-/* Ground shadow under pyramid - realistic ellipse */
+/* Hide ground shadow when using photo background */
 #pyramid-scene::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 290px;
-    height: 35px;
-    background: radial-gradient(ellipse at center,
-        rgba(40, 25, 10, 0.5) 0%,
-        rgba(40, 25, 10, 0.3) 30%,
-        rgba(40, 25, 10, 0.1) 60%,
-        transparent 80%
-    );
-    border-radius: 50%;
-    z-index: 0;
+    display: none;
 }
 
 /* ============================================
    PYRAMID FACE BACKGROUND - Photorealistic Sandstone
    ============================================ */
 
+/* Hide CSS pyramid face when using photo background (pyramid is in the photo) */
 .face-bg {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 310px;
+    display: none;
     height: 310px;
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
     background:
