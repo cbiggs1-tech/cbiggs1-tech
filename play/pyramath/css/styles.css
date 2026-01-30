@@ -1651,6 +1651,8 @@ body {
 
     #controls {
         gap: 5px;
+        /* Position just below bottom game blocks with same spacing */
+        margin-top: 5px;
     }
 
     #controls button {
@@ -1760,6 +1762,7 @@ body {
 
     #controls {
         width: 100%;
+        margin-top: 5px;
     }
 
     #feedback {
