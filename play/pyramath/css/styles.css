@@ -102,33 +102,6 @@ body {
     display: none;
 }
 
-/* Overlay to hide background numbers in the photo */
-/* Stone-colored patches positioned over the baked-in numbers */
-#desert-scene::before {
-    content: '';
-    position: absolute;
-    z-index: 1;
-    /* Cover the pyramid number area with stone-colored gradient */
-    top: 22%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 280px;
-    height: 320px;
-    clip-path: polygon(50% 8%, 95% 85%, 5% 85%);
-    background:
-        /* Match the pyramid stone colors */
-        linear-gradient(180deg,
-            #c8b090 0%,
-            #d4c0a0 20%,
-            #c8b898 40%,
-            #bca888 60%,
-            #b09878 80%,
-            #a08868 100%
-        );
-    pointer-events: none;
-    opacity: 0.97;
-}
-
 /* Heat shimmer effect at horizon */
 #sky::after {
     content: '';
