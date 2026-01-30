@@ -1052,30 +1052,30 @@ body {
         drop-shadow(1px 2px 1px rgba(60, 40, 20, 0.3));
 }
 
-/* Left edge stones - angled left side */
+/* Left edge stones - angled left side (25px offset for ~28° angle) */
 .stone-row:not([data-row="0"]) .stone:first-child {
     clip-path: polygon(
-        12px 0%,
+        25px 0%,
         100% 0%,
         100% 100%,
         0% 100%
     );
 }
 
-/* Right edge stones - angled right side */
+/* Right edge stones - angled right side (25px offset for ~28° angle) */
 .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
     clip-path: polygon(
         0% 0%,
-        calc(100% - 12px) 0%,
+        calc(100% - 25px) 0%,
         100% 100%,
         0% 100%
     );
 }
 
-/* Row 1 (2 stones) - both edges more angled */
+/* Row 1 (2 stones) - both edges angled to match */
 .stone-row[data-row="1"] .stone:first-child {
     clip-path: polygon(
-        10px 0%,
+        22px 0%,
         100% 0%,
         100% 100%,
         0% 100%
@@ -1085,7 +1085,7 @@ body {
 .stone-row[data-row="1"] .stone:last-child {
     clip-path: polygon(
         0% 0%,
-        calc(100% - 10px) 0%,
+        calc(100% - 22px) 0%,
         100% 100%,
         0% 100%
     );
@@ -1646,11 +1646,11 @@ body {
     }
 
     .stone-row:not([data-row="0"]) .stone:first-child {
-        clip-path: polygon(10px 0%, 100% 0%, 100% 100%, 0% 100%);
+        clip-path: polygon(22px 0%, 100% 0%, 100% 100%, 0% 100%);
     }
 
     .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
-        clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%);
+        clip-path: polygon(0% 0%, calc(100% - 22px) 0%, 100% 100%, 0% 100%);
     }
 
     #top-bar {
