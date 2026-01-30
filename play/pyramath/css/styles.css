@@ -1024,10 +1024,8 @@ body {
    ANGLED STONE EDGES - 52 degree pyramid slope
    ============================================ */
 
-/* Capstone - rectangular with rounded corners, 20% larger */
+/* Capstone - same size as game blocks with gold glow */
 .stone-row[data-row="0"] .stone.target {
-    width: 72px;
-    height: 67px;
     border-radius: 6px;
     box-shadow:
         /* 3D depth - bottom/right shadow */
@@ -1593,11 +1591,6 @@ body {
         width: 52px;
         height: 50px;
         font-size: 1.35rem;
-    }
-
-    .stone-row[data-row="0"] .stone.target {
-        width: 65px;
-        height: 60px;
     }
 
     #top-bar {
