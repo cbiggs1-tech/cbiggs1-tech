@@ -1024,105 +1024,26 @@ body {
    ANGLED STONE EDGES - 52 degree pyramid slope
    ============================================ */
 
-/* Capstone - triangular with rounded corners, 20% larger */
+/* Capstone - rectangular with rounded corners, 20% larger */
 .stone-row[data-row="0"] .stone.target {
-    clip-path: polygon(
-        /* Rounded top point */
-        46% 8%,
-        50% 0%,
-        54% 8%,
-        /* Right side down to rounded bottom-right */
-        94% 90%,
-        97% 95%,
-        100% 100%,
-        95% 100%,
-        /* Bottom edge */
-        5% 100%,
-        /* Rounded bottom-left corner */
-        0% 100%,
-        3% 95%,
-        6% 90%
-    );
     width: 72px;
     height: 67px;
-    padding-top: 14px;
-    /* 3D effect using filter (works with clip-path) */
-    filter:
-        drop-shadow(3px 4px 3px rgba(40, 25, 10, 0.5))
-        drop-shadow(1px 2px 1px rgba(60, 40, 20, 0.3));
+    border-radius: 6px;
+    box-shadow:
+        /* 3D depth - bottom/right shadow */
+        4px 5px 10px var(--shadow-medium),
+        2px 2px 5px var(--shadow-soft),
+        /* Gold glow */
+        0 0 15px rgba(201, 162, 39, 0.4),
+        /* Inner highlight - top/left */
+        inset 3px 3px 8px rgba(255, 255, 255, 0.5),
+        /* Inner shadow - bottom/right */
+        inset -2px -2px 6px rgba(80, 60, 40, 0.3);
 }
 
-/* Left edge stones - angled left side with rounded corners */
-.stone-row:not([data-row="0"]) .stone:first-child {
-    clip-path: polygon(
-        /* Rounded top-left angled corner */
-        20px 5%,
-        25px 0%,
-        /* Top edge to rounded top-right */
-        96% 0%,
-        100% 4%,
-        /* Right side to rounded bottom-right */
-        100% 96%,
-        96% 100%,
-        /* Bottom edge to rounded bottom-left */
-        4% 100%,
-        0% 96%,
-        /* Left angled side */
-        0% 100%,
-        3% 94%
-    );
-}
-
-/* Right edge stones - angled right side with rounded corners */
-.stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
-    clip-path: polygon(
-        /* Rounded top-left */
-        4% 0%,
-        0% 4%,
-        /* Left side to rounded bottom-left */
-        0% 96%,
-        4% 100%,
-        /* Bottom edge to rounded bottom-right */
-        96% 100%,
-        100% 96%,
-        /* Right angled side */
-        100% 100%,
-        97% 94%,
-        /* Rounded top-right angled corner */
-        calc(100% - 20px) 5%,
-        calc(100% - 25px) 0%
-    );
-}
-
-/* Row 1 (2 stones) - both edges angled with rounded corners */
-.stone-row[data-row="1"] .stone:first-child {
-    clip-path: polygon(
-        18px 5%,
-        22px 0%,
-        96% 0%,
-        100% 4%,
-        100% 96%,
-        96% 100%,
-        4% 100%,
-        0% 96%,
-        0% 100%,
-        3% 94%
-    );
-}
-
-.stone-row[data-row="1"] .stone:last-child {
-    clip-path: polygon(
-        4% 0%,
-        0% 4%,
-        0% 96%,
-        4% 100%,
-        96% 100%,
-        100% 96%,
-        100% 100%,
-        97% 94%,
-        calc(100% - 18px) 5%,
-        calc(100% - 22px) 0%
-    );
+/* All stones get consistent rounded corners and 3D effect */
+.stone {
+    border-radius: 6px;
 }
 
 /* ============================================
@@ -1677,26 +1598,6 @@ body {
     .stone-row[data-row="0"] .stone.target {
         width: 65px;
         height: 60px;
-    }
-
-    .stone-row:not([data-row="0"]) .stone:first-child {
-        clip-path: polygon(
-            18px 5%, 22px 0%,
-            96% 0%, 100% 4%,
-            100% 96%, 96% 100%,
-            4% 100%, 0% 96%,
-            0% 100%, 3% 94%
-        );
-    }
-
-    .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
-        clip-path: polygon(
-            4% 0%, 0% 4%,
-            0% 96%, 4% 100%,
-            96% 100%, 100% 96%,
-            100% 100%, 97% 94%,
-            calc(100% - 18px) 5%, calc(100% - 22px) 0%
-        );
     }
 
     #top-bar {
