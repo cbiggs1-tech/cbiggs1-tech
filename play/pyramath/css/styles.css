@@ -483,7 +483,7 @@ body {
     perspective-origin: center 120%;
     position: relative;
     /* Push stones down to align with pyramid apex in photo */
-    margin-top: 12%;
+    margin-top: calc(12% - 14px);
     flex-shrink: 0;
 }
 
@@ -1591,7 +1591,7 @@ body {
     #pyramid-scene {
         width: 300px;
         height: 280px;
-        margin-top: 10%;
+        margin-top: calc(10% - 12px);
         perspective: 700px;
     }
 
@@ -1673,7 +1673,7 @@ body {
     #pyramid-scene {
         width: 280px;
         height: 260px;
-        margin-top: 8%;
+        margin-top: calc(8% - 10px);
         perspective: 600px;
     }
 
