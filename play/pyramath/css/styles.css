@@ -307,14 +307,18 @@ body {
    GAME CONTAINER
    ============================================ */
 
+/* Position game elements to align with background photo */
 #game-container {
     width: 100%;
     max-width: 420px;
-    padding: 8px;
+    height: 100vh;
+    height: 100dvh;
+    padding: 8px 8px 0 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    justify-content: flex-start;
+    gap: 0;
     position: relative;
     z-index: 10;
 }
@@ -411,23 +415,29 @@ body {
     text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-/* Operation Display - Gold Cartouche */
+/* Operation Display - Gold Cartouche (below top bar) */
 .operation-display {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     background:
         linear-gradient(180deg,
             var(--gold-light) 0%,
             var(--gold-mid) 35%,
             var(--gold-dark) 100%
         );
-    padding: 6px 20px;
+    padding: 8px 28px;
     border-radius: 25px;
-    border: 2px solid var(--gold-deep);
+    border: 3px solid var(--gold-deep);
     box-shadow:
-        0 3px 10px var(--shadow-medium),
-        0 0 15px rgba(201, 162, 39, 0.3),
+        0 4px 12px var(--shadow-medium),
+        0 0 20px rgba(201, 162, 39, 0.4),
         inset 0 2px 0 rgba(255, 255, 255, 0.4),
         inset 0 -2px 4px rgba(0, 0, 0, 0.2);
     position: relative;
+    margin-top: 6px;
 }
 
 /* Cartouche end decorations */
@@ -465,13 +475,16 @@ body {
    PYRAMID SCENE - 3D Perspective
    ============================================ */
 
+/* Position stone grid to align with pyramid in background photo */
 #pyramid-scene {
     width: 330px;
-    height: 330px;
+    height: 290px;
     perspective: 1200px;
     perspective-origin: center 35%;
     position: relative;
-    margin-top: 5px;
+    /* Push stones down to align with pyramid apex in photo */
+    margin-top: 12%;
+    flex-shrink: 0;
 }
 
 /* Hide ground shadow when using photo background */
@@ -1056,6 +1069,7 @@ body {
 
 /* ============================================
    CONTROLS - Gold Cartouche Buttons
+   Position at bottom of pyramid area
    ============================================ */
 
 #controls {
@@ -1064,6 +1078,8 @@ body {
     align-items: center;
     flex-wrap: wrap;
     justify-content: center;
+    margin-top: auto;
+    padding: 6px 0;
 }
 
 #controls button {
@@ -1140,12 +1156,13 @@ body {
 
 /* ============================================
    FEEDBACK - Papyrus Scroll Banner
+   Positioned at bottom of screen
    ============================================ */
 
 #feedback {
-    min-height: 40px;
-    padding: 12px 36px;
-    font-size: 0.95rem;
+    min-height: 36px;
+    padding: 10px 36px;
+    font-size: 0.9rem;
     font-weight: 600;
     color: var(--text-carved);
     text-align: center;
@@ -1176,7 +1193,9 @@ body {
         inset 0 -2px 4px rgba(139, 115, 85, 0.15);
     position: relative;
     min-width: 280px;
+    max-width: 350px;
     text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+    margin-bottom: 8px;
 }
 
 /* Scroll rod ends */
@@ -1205,11 +1224,9 @@ body {
 #feedback::before { left: -10px; }
 #feedback::after { right: -10px; }
 
+/* Hide status - not in reference design */
 #status {
-    font-size: 0.8rem;
-    color: var(--text-hieroglyph);
-    text-align: center;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    display: none;
 }
 
 /* ============================================
@@ -1559,13 +1576,14 @@ body {
 
 @media (max-width: 440px) {
     #game-container {
-        padding: 6px;
-        gap: 5px;
+        padding: 6px 6px 0 6px;
+        gap: 0;
     }
 
     #pyramid-scene {
         width: 300px;
-        height: 300px;
+        height: 280px;
+        margin-top: 10%;
     }
 
     .face-bg {
@@ -1645,7 +1663,8 @@ body {
 @media (max-width: 360px) {
     #pyramid-scene {
         width: 280px;
-        height: 280px;
+        height: 260px;
+        margin-top: 8%;
     }
 
     .face-bg {
@@ -1692,6 +1711,7 @@ body {
         justify-content: center;
         max-width: 100%;
         padding: 4px;
+        gap: 4px;
     }
 
     #top-bar {
@@ -1702,7 +1722,8 @@ body {
 
     #pyramid-scene {
         width: 260px;
-        height: 260px;
+        height: 240px;
+        margin-top: 0;
     }
 
     .face-bg {

@@ -28,10 +28,6 @@
 
     <div id="game-container">
         <header id="top-bar">
-            <div class="stat-box level-box">
-                <span class="stat-label">Level</span>
-                <span id="level-value">1</span>
-            </div>
             <div class="stat-box">
                 <span class="stat-label">Score</span>
                 <span id="score-value">0</span>
@@ -40,15 +36,21 @@
                 <span class="stat-label">Streak</span>
                 <span id="streak-value">0</span>
             </div>
-            <div class="stat-box operation-display">
-                <span id="operation-symbol">+</span>
-                <span id="operation-name">Addition</span>
-            </div>
             <div class="stat-box">
                 <span class="stat-label">Time</span>
                 <span id="timer-value">0:00</span>
             </div>
+            <div class="stat-box level-box">
+                <span class="stat-label">Level</span>
+                <span id="level-value">1</span>
+            </div>
         </header>
+
+        <!-- Operation display - centered below top bar -->
+        <div class="operation-display">
+            <span id="operation-symbol">+</span>
+            <span id="operation-name">Addition</span>
+        </div>
 
         <!-- Player turn display for multiplayer -->
         <div id="player-turn-display" class="player-turn" style="display: none;">Player 1's Turn</div>
@@ -133,6 +135,6 @@
         </div>
     </div>
 
-    <script src="js/pyramath.js?v=22"></script>
+    <script src="js/pyramath.js?v=23"></script>
 </body>
 </html>
