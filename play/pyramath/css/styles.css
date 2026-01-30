@@ -1024,16 +1024,28 @@ body {
    ANGLED STONE EDGES - 52 degree pyramid slope
    ============================================ */
 
-/* Capstone - triangular top, 20% larger */
+/* Capstone - triangular with rounded corners, 20% larger */
 .stone-row[data-row="0"] .stone.target {
     clip-path: polygon(
+        /* Rounded top point */
+        46% 8%,
         50% 0%,
+        54% 8%,
+        /* Right side down to rounded bottom-right */
+        94% 90%,
+        97% 95%,
         100% 100%,
-        0% 100%
+        95% 100%,
+        /* Bottom edge */
+        5% 100%,
+        /* Rounded bottom-left corner */
+        0% 100%,
+        3% 95%,
+        6% 90%
     );
     width: 72px;
     height: 67px;
-    padding-top: 12px;
+    padding-top: 14px;
 }
 
 /* Left edge stones - angled left side */
