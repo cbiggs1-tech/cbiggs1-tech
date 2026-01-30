@@ -1,4 +1,6 @@
-// pyramath.js - Mental Math Pyramid Trainer
+// pyramath.js - Mental Math Pyramid Trainer v2.0
+// ===========================================
+// Photorealistic Egyptian Pyramid Theme
 // ===========================================
 // Core Mechanic:
 // - Capstone displays the CURRENT TARGET value
@@ -1427,6 +1429,13 @@ function initEventListeners() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Mobile detection for touch-optimized behavior
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (isMobile || isTouchDevice) {
+        document.body.classList.add('mobile');
+    }
+
     initDOMElements();
     initEventListeners();
     initPyramid();

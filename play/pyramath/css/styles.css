@@ -1,4 +1,5 @@
-/* PyraMath - Photorealistic Egyptian Pyramid Theme */
+/* PyraMath - Photorealistic Egyptian Pyramid Theme v2.0 */
+/* Stunning, immersive, kid-friendly - pure CSS magic! */
 
 * {
     margin: 0;
@@ -7,24 +8,57 @@
 }
 
 :root {
+    /* Sand & Desert Colors */
+    --sand-lightest: #F5E6C8;
     --sand-light: #E8D5A3;
     --sand-mid: #D4B896;
     --sand-dark: #C4A882;
     --sand-floor: #D8C8A0;
-    --stone-light: #CFC0A0;
-    --stone-mid: #B8A888;
-    --stone-dark: #9A8868;
-    --gold: #C9A227;
-    --gold-light: #E8C547;
+    --sand-shadow: #B8A070;
+
+    /* Sandstone Colors */
+    --stone-lightest: #E8DCC8;
+    --stone-light: #D8C8A8;
+    --stone-mid: #C8B898;
+    --stone-dark: #A89070;
+    --stone-shadow: #887050;
+    --stone-carved: #5A4A30;
+
+    /* Gold & Treasure */
+    --gold-bright: #FFD700;
+    --gold-light: #F0D060;
+    --gold-mid: #C9A227;
     --gold-dark: #9A7B1A;
-    --parchment: #F4E4BC;
-    --parchment-dark: #D4C49C;
-    --text-dark: #3D2914;
+    --gold-deep: #7A5B0A;
+    --gold-glow: rgba(255, 215, 0, 0.6);
+
+    /* Papyrus & Parchment */
+    --papyrus-light: #FCF4DC;
+    --papyrus-mid: #F4E4BC;
+    --papyrus-dark: #D4C49C;
+    --papyrus-edge: #B8A878;
+
+    /* Text */
+    --text-carved: #3D2914;
+    --text-hieroglyph: #6B5B3B;
+    --text-gold: #8B6914;
+
+    /* Sky */
+    --sky-top: #4A90C8;
+    --sky-mid: #7CBCE8;
+    --sky-bottom: #E8D8C0;
+
+    /* Shadows */
+    --shadow-soft: rgba(60, 40, 20, 0.3);
+    --shadow-medium: rgba(40, 25, 10, 0.5);
+    --shadow-hard: rgba(20, 10, 0, 0.7);
 }
 
 html, body {
     height: 100%;
     overflow: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -32,7 +66,9 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #D8C8A0; /* Light tan - matches sand so gaps show sand, not water */
+    background: var(--sand-floor);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
 }
 
 /* ============================================
@@ -49,19 +85,48 @@ body {
     overflow: hidden;
 }
 
+/* Sky with realistic gradient and subtle sun glow */
 #sky {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 55%;
+    background:
+        /* Sun glow */
+        radial-gradient(ellipse 40% 30% at 75% 25%,
+            rgba(255, 240, 180, 0.5) 0%,
+            rgba(255, 220, 140, 0.2) 30%,
+            transparent 60%
+        ),
+        /* Main sky gradient */
+        linear-gradient(180deg,
+            var(--sky-top) 0%,
+            var(--sky-mid) 40%,
+            #B8D4E8 65%,
+            var(--sky-bottom) 90%,
+            var(--sand-light) 100%
+        );
+}
+
+/* Heat shimmer effect at horizon */
+#sky::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 30px;
     background: linear-gradient(180deg,
-        #5BA3D0 0%,
-        #7FC1E0 25%,
-        #A8D8EA 50%,
-        #C8E6F0 75%,
-        #E8F4F8 100%
+        transparent 0%,
+        rgba(232, 216, 192, 0.4) 100%
     );
+    animation: heatShimmer 3s ease-in-out infinite;
+}
+
+@keyframes heatShimmer {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
 }
 
 #dunes {
@@ -78,35 +143,62 @@ body {
     bottom: 0;
 }
 
-/* Distant dunes on the horizon - left side */
+/* Distant dunes - left side with shadow variation */
 .dune-back {
     height: 120px;
-    background: linear-gradient(180deg, #C8B080 0%, #D8C8A0 100%);
+    background:
+        linear-gradient(90deg,
+            var(--sand-mid) 0%,
+            var(--sand-light) 50%,
+            var(--sand-mid) 100%
+        ),
+        linear-gradient(180deg,
+            var(--sand-mid) 0%,
+            var(--sand-floor) 100%
+        );
     border-radius: 70% 90% 0 0 / 100% 100% 0 0;
     left: -40%;
     width: 60%;
     opacity: 0.7;
+    filter: blur(1px);
 }
 
-/* Distant dunes on the horizon - right side */
+/* Distant dunes - right side */
 .dune-mid {
     height: 100px;
-    background: linear-gradient(180deg, #D0BC88 0%, #D8C8A0 100%);
+    background: linear-gradient(180deg,
+        var(--sand-mid) 0%,
+        var(--sand-floor) 100%
+    );
     border-radius: 90% 70% 0 0 / 100% 100% 0 0;
     right: -40%;
     width: 60%;
     opacity: 0.7;
+    filter: blur(1px);
 }
 
 /* Main sand plateau - flat where pyramid sits */
 .dune-front {
     height: 80px;
-    background: linear-gradient(180deg, #E4D4A4 0%, #D8C8A0 100%);
+    background:
+        /* Subtle sand ripples */
+        repeating-linear-gradient(
+            85deg,
+            transparent 0px,
+            rgba(180, 160, 120, 0.08) 1px,
+            transparent 2px,
+            transparent 25px
+        ),
+        linear-gradient(180deg,
+            var(--sand-light) 0%,
+            var(--sand-floor) 100%
+        );
     border-radius: 0;
     left: 0;
     width: 100%;
 }
 
+/* Sand floor with realistic texture */
 #sand-floor {
     position: absolute;
     bottom: 0;
@@ -114,45 +206,73 @@ body {
     width: 100%;
     height: 22%;
     background:
-        /* Subtle sand texture lines */
+        /* Sand grain texture - diagonal lines */
+        repeating-linear-gradient(
+            45deg,
+            transparent 0px,
+            rgba(160, 140, 100, 0.06) 1px,
+            transparent 2px,
+            transparent 8px
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            transparent 0px,
+            rgba(180, 160, 120, 0.05) 1px,
+            transparent 2px,
+            transparent 10px
+        ),
+        /* Sand ripples */
         repeating-linear-gradient(
             88deg,
             transparent 0px,
-            rgba(180, 160, 120, 0.12) 1px,
+            rgba(180, 160, 120, 0.1) 1px,
             transparent 2px,
-            transparent 40px
+            transparent 35px
         ),
-        repeating-linear-gradient(
-            92deg,
-            transparent 0px,
-            rgba(160, 140, 100, 0.08) 1px,
-            transparent 2px,
-            transparent 50px
-        ),
-        /* Solid sand base - lighter at top blending with dune-front */
+        /* Base gradient */
         linear-gradient(180deg,
-            #D8C8A0 0%,
-            #D4C498 15%,
-            #C8B890 40%,
-            #B8A880 70%,
-            #A89870 100%
+            var(--sand-floor) 0%,
+            var(--sand-mid) 30%,
+            var(--sand-dark) 70%,
+            var(--sand-shadow) 100%
         );
 }
 
 /* ============================================
-   STONE RUINS
+   STONE RUINS with Hieroglyphics
    ============================================ */
 
 .ruin {
     position: fixed;
     bottom: 0;
-    width: 90px;
-    height: 160px;
+    width: 85px;
+    height: 150px;
     z-index: 2;
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(145deg, #C8B898 0%, #A89878 100%);
-    background-blend-mode: overlay;
+        /* Sandstone crack texture */
+        repeating-linear-gradient(
+            160deg,
+            transparent 0px,
+            rgba(80, 60, 40, 0.08) 1px,
+            transparent 2px,
+            transparent 20px
+        ),
+        repeating-linear-gradient(
+            95deg,
+            transparent 0px,
+            rgba(60, 40, 20, 0.06) 1px,
+            transparent 2px,
+            transparent 30px
+        ),
+        /* Stone base */
+        linear-gradient(145deg,
+            var(--stone-light) 0%,
+            var(--stone-mid) 50%,
+            var(--stone-dark) 100%
+        );
+    box-shadow:
+        inset 2px 2px 4px rgba(255, 255, 255, 0.2),
+        inset -3px -3px 6px rgba(0, 0, 0, 0.15);
 }
 
 .ruin-left {
@@ -160,17 +280,21 @@ body {
     clip-path: polygon(15% 0%, 100% 20%, 90% 100%, 0% 100%, 5% 40%);
 }
 
+/* Hieroglyphic symbols carved into ruins */
 .ruin-left::before {
-    content: 'π\Aλ\A∞';
+    content: '\1330F\A\13171\A\131BC';
     white-space: pre;
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 1.6rem;
-    color: rgba(80, 60, 40, 0.5);
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-    line-height: 1.4;
+    font-size: 1.4rem;
+    color: var(--stone-shadow);
+    text-shadow:
+        1px 1px 0 rgba(255, 255, 255, 0.3),
+        -1px -1px 0 rgba(0, 0, 0, 0.2);
+    line-height: 1.5;
+    opacity: 0.6;
 }
 
 .ruin-right {
@@ -179,16 +303,19 @@ body {
 }
 
 .ruin-right::before {
-    content: 'Σ\Aτ\A√';
+    content: '\13000\A\1318D\A\13080';
     white-space: pre;
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 1.6rem;
-    color: rgba(80, 60, 40, 0.5);
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-    line-height: 1.4;
+    font-size: 1.4rem;
+    color: var(--stone-shadow);
+    text-shadow:
+        1px 1px 0 rgba(255, 255, 255, 0.3),
+        -1px -1px 0 rgba(0, 0, 0, 0.2);
+    line-height: 1.5;
+    opacity: 0.6;
 }
 
 /* ============================================
@@ -208,7 +335,7 @@ body {
 }
 
 /* ============================================
-   TOP BAR - Golden Parchment
+   TOP BAR - Papyrus Scroll with Hieroglyph Border
    ============================================ */
 
 #top-bar {
@@ -216,31 +343,65 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 16px;
-    background: linear-gradient(180deg,
-        #F8ECD0 0%,
-        var(--parchment) 30%,
-        var(--parchment-dark) 100%
-    );
-    border-radius: 10px;
-    border: 3px solid var(--gold);
+    padding: 12px 18px;
+    background:
+        /* Paper fiber texture */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            rgba(160, 140, 100, 0.04) 1px,
+            transparent 2px,
+            transparent 4px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent 0px,
+            rgba(140, 120, 80, 0.03) 1px,
+            transparent 2px,
+            transparent 5px
+        ),
+        /* Papyrus gradient */
+        linear-gradient(180deg,
+            var(--papyrus-light) 0%,
+            var(--papyrus-mid) 30%,
+            var(--papyrus-mid) 70%,
+            var(--papyrus-dark) 100%
+        );
+    border-radius: 8px;
+    border: 3px solid var(--gold-mid);
     box-shadow:
-        0 4px 15px rgba(0, 0, 0, 0.35),
+        0 4px 15px var(--shadow-medium),
+        0 8px 25px var(--shadow-soft),
         inset 0 2px 0 rgba(255, 255, 255, 0.5),
-        inset 0 -3px 6px rgba(139, 115, 85, 0.25);
+        inset 0 -3px 8px rgba(139, 115, 85, 0.2);
     position: relative;
 }
 
+/* Hieroglyph border decoration */
 #top-bar::before {
-    content: 'π  Σ  Δ  θ  φ  ∫  ω';
+    content: '\13000 \13080 \1318D \131BC \13171 \1330F \13000';
     position: absolute;
-    top: 2px;
+    top: 1px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.5rem;
-    color: #A08060;
-    opacity: 0.6;
-    letter-spacing: 2px;
+    color: var(--text-hieroglyph);
+    opacity: 0.5;
+    letter-spacing: 3px;
+    white-space: nowrap;
+}
+
+#top-bar::after {
+    content: '\13080 \1330F \13171 \1318D \131BC \13000 \13080';
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.5rem;
+    color: var(--text-hieroglyph);
+    opacity: 0.4;
+    letter-spacing: 3px;
+    white-space: nowrap;
 }
 
 .stat-box {
@@ -252,7 +413,7 @@ body {
 
 .stat-label {
     font-size: 0.6rem;
-    color: #8B7355;
+    color: var(--text-hieroglyph);
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -261,69 +422,94 @@ body {
 .stat-box span:last-child {
     font-size: 1.1rem;
     font-weight: bold;
-    color: var(--text-dark);
+    color: var(--text-carved);
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
 }
 
+/* Operation Display - Gold Cartouche */
 .operation-display {
+    background:
+        linear-gradient(180deg,
+            var(--gold-light) 0%,
+            var(--gold-mid) 35%,
+            var(--gold-dark) 100%
+        );
+    padding: 6px 20px;
+    border-radius: 25px;
+    border: 2px solid var(--gold-deep);
+    box-shadow:
+        0 3px 10px var(--shadow-medium),
+        0 0 15px rgba(201, 162, 39, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.4),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* Cartouche end decorations */
+.operation-display::before,
+.operation-display::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 80%;
     background: linear-gradient(180deg,
-        #F0D860 0%,
-        var(--gold) 40%,
+        var(--gold-light) 0%,
         var(--gold-dark) 100%
     );
-    padding: 6px 20px;
-    border-radius: 20px;
-    border: 2px solid var(--gold-dark);
-    box-shadow:
-        0 3px 10px rgba(0, 0, 0, 0.35),
-        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
 }
+.operation-display::before { left: -4px; }
+.operation-display::after { right: -4px; }
 
 #operation-symbol {
-    font-size: 1.3rem;
-    color: var(--text-dark);
+    font-size: 1.4rem;
+    color: var(--text-carved);
     font-weight: bold;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 #operation-name {
     font-size: 0.7rem;
-    color: var(--text-dark);
+    color: var(--text-carved);
     font-weight: 600;
 }
 
 /* ============================================
-   PYRAMID SCENE
+   PYRAMID SCENE - 3D Perspective
    ============================================ */
 
 #pyramid-scene {
     width: 330px;
     height: 330px;
-    perspective: 1000px;
-    perspective-origin: center 40%;
+    perspective: 1200px;
+    perspective-origin: center 35%;
     position: relative;
     margin-top: 5px;
 }
 
-/* Ground shadow under pyramid */
+/* Ground shadow under pyramid - realistic ellipse */
 #pyramid-scene::after {
     content: '';
     position: absolute;
-    bottom: -5px;
+    bottom: -8px;
     left: 50%;
     transform: translateX(-50%);
-    width: 280px;
-    height: 30px;
+    width: 290px;
+    height: 35px;
     background: radial-gradient(ellipse at center,
-        rgba(60, 40, 20, 0.4) 0%,
-        rgba(60, 40, 20, 0.2) 40%,
-        transparent 70%
+        rgba(40, 25, 10, 0.5) 0%,
+        rgba(40, 25, 10, 0.3) 30%,
+        rgba(40, 25, 10, 0.1) 60%,
+        transparent 80%
     );
     border-radius: 50%;
     z-index: 0;
 }
 
 /* ============================================
-   FACE BACKGROUND - Photorealistic Stone Pyramid
-   Each face has its own pyramid background that rotates with it
+   PYRAMID FACE BACKGROUND - Photorealistic Sandstone
    ============================================ */
 
 .face-bg {
@@ -335,19 +521,48 @@ body {
     height: 310px;
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
     background:
-        url('../img/rock-texture.jpg') center/cover,
+        /* Stone block lines - horizontal */
+        repeating-linear-gradient(
+            180deg,
+            transparent 0px,
+            transparent 28px,
+            rgba(80, 60, 40, 0.25) 28px,
+            rgba(80, 60, 40, 0.25) 30px
+        ),
+        /* Vertical mortar lines - staggered */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            transparent 48px,
+            rgba(70, 50, 30, 0.15) 48px,
+            rgba(70, 50, 30, 0.15) 50px
+        ),
+        /* Sandstone grain - fine */
+        repeating-linear-gradient(
+            45deg,
+            transparent 0px,
+            rgba(180, 150, 100, 0.08) 1px,
+            transparent 2px,
+            transparent 6px
+        ),
+        /* Weathering variation */
+        radial-gradient(ellipse 80% 60% at 30% 40%,
+            rgba(200, 180, 140, 0.15) 0%,
+            transparent 50%
+        ),
+        /* Base sandstone gradient */
         linear-gradient(180deg,
-            #D8C8A8 0%,
-            #C8B898 30%,
-            #B8A888 60%,
-            #A89878 100%
+            var(--stone-lightest) 0%,
+            var(--stone-light) 25%,
+            var(--stone-mid) 50%,
+            var(--stone-dark) 80%,
+            var(--stone-shadow) 100%
         );
-    background-blend-mode: multiply;
     z-index: -1;
     pointer-events: none;
 }
 
-/* Stone layer lines on pyramid */
+/* Sunlight on pyramid face */
 .face-bg::before {
     content: '';
     position: absolute;
@@ -355,18 +570,18 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background:
-        repeating-linear-gradient(
-            180deg,
-            transparent 0px,
-            transparent 20px,
-            rgba(80, 60, 40, 0.3) 20px,
-            rgba(80, 60, 40, 0.3) 22px
-        );
+    background: linear-gradient(
+        115deg,
+        rgba(255, 250, 230, 0.2) 0%,
+        rgba(255, 245, 200, 0.1) 20%,
+        transparent 40%,
+        rgba(0, 0, 0, 0.15) 80%,
+        rgba(0, 0, 0, 0.25) 100%
+    );
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 }
 
-/* Pyramid lighting/shadow for depth */
+/* Edge highlight */
 .face-bg::after {
     content: '';
     position: absolute;
@@ -374,50 +589,68 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-        120deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        transparent 35%,
-        rgba(0, 0, 0, 0.2) 100%
-    );
+    background:
+        linear-gradient(52deg,
+            rgba(255, 255, 255, 0.15) 0%,
+            transparent 3%,
+            transparent 97%,
+            rgba(0, 0, 0, 0.1) 100%
+        );
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
 }
 
-/* Different lighting for different faces to show 3D depth */
+/* Different lighting for each face to show 3D depth */
 .face-right .face-bg {
     background:
-        url('../img/rock-texture.jpg') center/cover,
+        repeating-linear-gradient(180deg,
+            transparent 0px, transparent 28px,
+            rgba(80, 60, 40, 0.25) 28px, rgba(80, 60, 40, 0.25) 30px
+        ),
+        repeating-linear-gradient(90deg,
+            transparent 0px, transparent 48px,
+            rgba(70, 50, 30, 0.15) 48px, rgba(70, 50, 30, 0.15) 50px
+        ),
         linear-gradient(180deg,
-            #C8B898 0%,
-            #B8A888 30%,
-            #A89878 60%,
-            #988868 100%
+            var(--stone-light) 0%,
+            var(--stone-mid) 30%,
+            var(--stone-dark) 60%,
+            var(--stone-shadow) 100%
         );
-    background-blend-mode: multiply;
 }
 
 .face-back .face-bg {
     background:
-        url('../img/rock-texture.jpg') center/cover,
+        repeating-linear-gradient(180deg,
+            transparent 0px, transparent 28px,
+            rgba(80, 60, 40, 0.3) 28px, rgba(80, 60, 40, 0.3) 30px
+        ),
+        repeating-linear-gradient(90deg,
+            transparent 0px, transparent 48px,
+            rgba(70, 50, 30, 0.2) 48px, rgba(70, 50, 30, 0.2) 50px
+        ),
         linear-gradient(180deg,
-            #B8A888 0%,
-            #A89878 30%,
-            #988868 60%,
-            #887858 100%
+            var(--stone-mid) 0%,
+            var(--stone-dark) 40%,
+            var(--stone-shadow) 100%
         );
-    background-blend-mode: multiply;
 }
 
 .face-left .face-bg {
     background:
-        url('../img/rock-texture.jpg') center/cover,
+        repeating-linear-gradient(180deg,
+            transparent 0px, transparent 28px,
+            rgba(80, 60, 40, 0.22) 28px, rgba(80, 60, 40, 0.22) 30px
+        ),
+        repeating-linear-gradient(90deg,
+            transparent 0px, transparent 48px,
+            rgba(70, 50, 30, 0.12) 48px, rgba(70, 50, 30, 0.12) 50px
+        ),
         linear-gradient(180deg,
-            #D0C0A0 0%,
-            #C0B090 30%,
-            #B0A080 60%,
-            #A09070 100%
+            var(--stone-lightest) 0%,
+            var(--stone-light) 25%,
+            var(--stone-mid) 60%,
+            var(--stone-dark) 100%
         );
-    background-blend-mode: multiply;
 }
 
 #pyramid {
@@ -437,17 +670,18 @@ body {
     padding-top: 12px;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
     pointer-events: none;
-    transform: scale(0.95);
+    transform: scale(0.95) rotateX(5deg);
+    transform-origin: center bottom;
 }
 
-/* Only the active face is visible */
+/* Active face with subtle 3D tilt */
 .pyramid-face.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: scale(1);
+    transform: scale(1) rotateX(0deg);
 }
 
 .stone-row {
@@ -459,45 +693,91 @@ body {
 }
 
 /* ============================================
-   STONES - Photorealistic Rock Texture
+   STONES - Photorealistic Sandstone Blocks
+   with CARVED Numbers
    ============================================ */
 
 .stone {
     width: 48px;
     height: 48px;
+    min-width: 44px;
+    min-height: 44px;
     margin: 0 3px;
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(160deg, #E0D0B0 0%, #C8B898 40%, #A89070 100%);
-    background-blend-mode: multiply;
+        /* Surface texture - fine grain */
+        repeating-linear-gradient(
+            35deg,
+            transparent 0px,
+            rgba(180, 150, 100, 0.1) 1px,
+            transparent 2px,
+            transparent 5px
+        ),
+        /* Weathering spots */
+        radial-gradient(circle at 30% 25%, rgba(200, 180, 140, 0.15) 0%, transparent 25%),
+        radial-gradient(circle at 70% 60%, rgba(160, 140, 100, 0.1) 0%, transparent 20%),
+        /* Stone gradient */
+        linear-gradient(160deg,
+            var(--stone-lightest) 0%,
+            var(--stone-light) 25%,
+            var(--stone-mid) 50%,
+            var(--stone-dark) 100%
+        );
     border: none;
-    border-radius: 3px;
+    border-radius: 4px;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.35rem;
-    font-weight: bold;
-    color: #3A2A1A;
-    text-shadow:
-        1px 1px 0 rgba(255, 255, 255, 0.6),
-        -1px -1px 0 rgba(0, 0, 0, 0.15);
     cursor: pointer;
     transition: all 0.15s ease;
     box-shadow:
-        3px 4px 6px rgba(0, 0, 0, 0.5),
-        1px 1px 3px rgba(0, 0, 0, 0.3),
-        inset 2px 2px 4px rgba(255, 255, 255, 0.35),
-        inset -2px -2px 4px rgba(0, 0, 0, 0.15);
+        /* 3D depth - bottom/right shadow */
+        4px 5px 8px var(--shadow-medium),
+        2px 2px 4px var(--shadow-soft),
+        /* Inner highlight - top/left */
+        inset 3px 3px 6px rgba(255, 255, 255, 0.4),
+        /* Inner shadow - bottom/right */
+        inset -2px -2px 5px rgba(80, 60, 40, 0.25);
     position: relative;
 }
 
+/* CARVED Number Effect - the magic! */
+.stone {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--stone-carved);
+    /* Carved/engraved text - inset shadow creates depth */
+    text-shadow:
+        /* Light hitting from top-left (highlight inside carving) */
+        1px 1px 1px rgba(255, 255, 255, 0.7),
+        /* Shadow at top of carving (dark edge) */
+        -1px -1px 1px rgba(60, 40, 20, 0.4),
+        /* Deeper shadow for 3D depth */
+        0px 2px 2px rgba(40, 25, 10, 0.3);
+    /* Letter spacing for better visibility */
+    letter-spacing: 0.5px;
+}
+
+/* Alternative carved style for very dark appearance */
+.stone.deep-carved {
+    color: var(--stone-shadow);
+    text-shadow:
+        1px 1px 0 rgba(255, 255, 255, 0.6),
+        -1px -1px 1px rgba(40, 25, 10, 0.5),
+        0px 1px 3px rgba(0, 0, 0, 0.4);
+}
+
 .stone:hover {
-    transform: scale(1.08);
+    transform: scale(1.08) translateY(-2px);
     box-shadow:
-        3px 4px 10px rgba(0, 0, 0, 0.5),
-        inset 1px 1px 2px rgba(255, 255, 255, 0.3),
-        inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+        5px 7px 12px var(--shadow-medium),
+        3px 4px 6px var(--shadow-soft),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.35),
+        inset -2px -2px 4px rgba(80, 60, 40, 0.2);
     z-index: 5;
+}
+
+.stone:active {
+    transform: scale(1.02);
 }
 
 /* ============================================
@@ -508,19 +788,46 @@ body {
     width: 54px;
     height: 54px;
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(145deg, #E8D080 0%, #C8A848 50%, #A88830 100%);
-    background-blend-mode: soft-light;
+        /* Gold shimmer */
+        linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.3) 0%,
+            transparent 40%,
+            transparent 60%,
+            rgba(255, 255, 255, 0.2) 100%
+        ),
+        /* Gold texture grain */
+        repeating-linear-gradient(
+            45deg,
+            transparent 0px,
+            rgba(255, 220, 100, 0.1) 1px,
+            transparent 2px,
+            transparent 4px
+        ),
+        /* Main gold gradient */
+        linear-gradient(145deg,
+            var(--gold-light) 0%,
+            var(--gold-mid) 40%,
+            var(--gold-dark) 100%
+        );
     font-size: 1.5rem;
-    color: #3A2A1A;
+    color: var(--text-carved);
     cursor: default;
+    text-shadow:
+        1px 1px 1px rgba(255, 255, 255, 0.5),
+        -1px -1px 1px rgba(100, 70, 10, 0.4),
+        0px 2px 3px rgba(60, 40, 0, 0.3);
     box-shadow:
-        0 0 15px rgba(200, 160, 40, 0.5),
-        0 0 30px rgba(200, 160, 40, 0.25),
-        3px 4px 8px rgba(0, 0, 0, 0.4),
-        inset 1px 1px 3px rgba(255, 255, 255, 0.4),
-        inset -1px -1px 3px rgba(0, 0, 0, 0.2);
-    animation: targetPulse 2s ease-in-out infinite;
+        /* Golden glow */
+        0 0 15px rgba(201, 162, 39, 0.5),
+        0 0 30px rgba(201, 162, 39, 0.25),
+        0 0 45px rgba(201, 162, 39, 0.1),
+        /* Depth shadows */
+        4px 5px 10px var(--shadow-medium),
+        /* Inner lighting */
+        inset 2px 2px 4px rgba(255, 255, 255, 0.5),
+        inset -2px -2px 4px rgba(100, 70, 20, 0.3);
+    animation: targetPulse 2.5s ease-in-out infinite;
 }
 
 .stone.target:hover {
@@ -530,96 +837,170 @@ body {
 @keyframes targetPulse {
     0%, 100% {
         box-shadow:
-            0 0 15px rgba(200, 160, 40, 0.5),
-            0 0 30px rgba(200, 160, 40, 0.25),
-            3px 4px 8px rgba(0, 0, 0, 0.4),
-            inset 1px 1px 3px rgba(255, 255, 255, 0.4),
-            inset -1px -1px 3px rgba(0, 0, 0, 0.2);
+            0 0 15px rgba(201, 162, 39, 0.5),
+            0 0 30px rgba(201, 162, 39, 0.25),
+            0 0 45px rgba(201, 162, 39, 0.1),
+            4px 5px 10px var(--shadow-medium),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.5),
+            inset -2px -2px 4px rgba(100, 70, 20, 0.3);
     }
     50% {
         box-shadow:
-            0 0 20px rgba(200, 160, 40, 0.7),
-            0 0 40px rgba(200, 160, 40, 0.35),
-            3px 4px 8px rgba(0, 0, 0, 0.4),
-            inset 1px 1px 3px rgba(255, 255, 255, 0.4),
-            inset -1px -1px 3px rgba(0, 0, 0, 0.2);
+            0 0 20px rgba(201, 162, 39, 0.7),
+            0 0 40px rgba(201, 162, 39, 0.4),
+            0 0 60px rgba(201, 162, 39, 0.2),
+            4px 5px 10px var(--shadow-medium),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.6),
+            inset -2px -2px 4px rgba(100, 70, 20, 0.3);
     }
 }
 
 .stone.target-changed {
-    animation: targetBounce 0.4s ease;
+    animation: targetBounce 0.5s ease;
 }
 
 @keyframes targetBounce {
     0% { transform: scale(1); }
-    40% { transform: scale(1.15); }
+    30% { transform: scale(1.2); }
     100% { transform: scale(1); }
 }
 
 /* ============================================
-   SELECTED STONE
+   SELECTED STONE - Highlighted
    ============================================ */
 
 .stone.selected {
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(145deg, #F0E0A0 0%, #E0C878 100%);
-    background-blend-mode: soft-light;
+        linear-gradient(145deg,
+            #FFF8DC 0%,
+            var(--gold-light) 50%,
+            var(--gold-mid) 100%
+        );
     box-shadow:
-        0 0 12px rgba(255, 215, 0, 0.7),
-        0 0 25px rgba(255, 215, 0, 0.4),
-        3px 4px 8px rgba(0, 0, 0, 0.4);
-    transform: scale(1.1);
+        0 0 15px var(--gold-glow),
+        0 0 30px rgba(255, 215, 0, 0.4),
+        4px 5px 10px var(--shadow-medium),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.6);
+    transform: scale(1.12) translateY(-3px);
     z-index: 10;
 }
 
 /* ============================================
-   SOLVED STONE - Golden
+   SOLVED STONE - Gold with Sparkle Animation
    ============================================ */
 
 .stone.solved {
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(145deg, #D4AF37 0%, #B89830 50%, #987820 100%);
-    background-blend-mode: soft-light;
-    color: #3A2A10;
+        /* Metallic shimmer overlay */
+        linear-gradient(
+            110deg,
+            rgba(255, 255, 255, 0.4) 0%,
+            rgba(255, 255, 255, 0.1) 45%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.1) 55%,
+            rgba(255, 255, 255, 0.3) 100%
+        ),
+        /* Gold grain */
+        repeating-linear-gradient(
+            45deg,
+            transparent 0px,
+            rgba(255, 220, 100, 0.15) 1px,
+            transparent 2px,
+            transparent 4px
+        ),
+        /* Rich gold gradient */
+        linear-gradient(145deg,
+            var(--gold-bright) 0%,
+            var(--gold-light) 25%,
+            var(--gold-mid) 50%,
+            var(--gold-dark) 100%
+        );
+    color: var(--text-carved);
     cursor: default;
     box-shadow:
-        0 0 10px rgba(212, 175, 55, 0.4),
-        0 0 20px rgba(212, 175, 55, 0.2),
-        2px 3px 6px rgba(0, 0, 0, 0.35),
-        inset 1px 1px 2px rgba(255, 255, 255, 0.4),
-        inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+        /* Golden glow */
+        0 0 12px rgba(255, 215, 0, 0.5),
+        0 0 25px rgba(201, 162, 39, 0.3),
+        /* Depth */
+        3px 4px 8px var(--shadow-medium),
+        /* Inner shine */
+        inset 2px 2px 4px rgba(255, 255, 255, 0.5),
+        inset -1px -1px 3px rgba(139, 105, 20, 0.3);
+    animation: solvedShine 3s ease-in-out infinite;
 }
 
 .stone.solved:hover {
     transform: none;
 }
 
-.stone.target.solved {
-    animation: none;
+/* Subtle shine animation for solved stones */
+@keyframes solvedShine {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.1);
+    }
 }
 
+.stone.target.solved {
+    animation: none;
+    background:
+        linear-gradient(145deg,
+            var(--gold-bright) 0%,
+            var(--gold-mid) 50%,
+            var(--gold-dark) 100%
+        );
+}
+
+/* Pop animation when just solved */
 .stone.just-solved {
-    animation: solvePop 0.5s ease;
+    animation: solvePop 0.6s ease;
 }
 
 @keyframes solvePop {
-    0% { transform: scale(1); }
-    30% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    0% { transform: scale(1); filter: brightness(1); }
+    25% { transform: scale(1.25); filter: brightness(1.3); }
+    50% { transform: scale(1.15); filter: brightness(1.2); }
+    100% { transform: scale(1); filter: brightness(1); }
 }
 
+/* Sparkle pseudo-element for solved stones */
+.stone.solved::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: radial-gradient(circle,
+        white 0%,
+        var(--gold-bright) 40%,
+        transparent 70%
+    );
+    border-radius: 50%;
+    animation: sparkle 2s ease-in-out infinite;
+    opacity: 0;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Shake animation for wrong answers */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-5px); }
-    40% { transform: translateX(5px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
+    15% { transform: translateX(-6px) rotate(-1deg); }
+    30% { transform: translateX(6px) rotate(1deg); }
+    45% { transform: translateX(-5px) rotate(-0.5deg); }
+    60% { transform: translateX(5px) rotate(0.5deg); }
+    75% { transform: translateX(-3px); }
+    90% { transform: translateX(3px); }
 }
 
 .stone.shake {
-    animation: shake 0.4s ease;
+    animation: shake 0.5s ease;
 }
 
 .stone.disabled {
@@ -629,35 +1010,35 @@ body {
 
 /* Dynamic font sizing for large numbers */
 .stone.small-text {
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
 .stone.tiny-text {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
 }
 
 .stone.target.small-text {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
 }
 
 .stone.target.tiny-text {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
 }
 
 /* ============================================
    ANGLED STONE EDGES - 52 degree pyramid slope
    ============================================ */
 
-/* Capstone - triangular pointed top */
+/* Capstone - pointed triangular top */
 .stone-row[data-row="0"] .stone.target {
     clip-path: polygon(
         50% 0%,
         100% 100%,
         0% 100%
     );
-    width: 58px;
-    height: 54px;
-    padding-top: 8px;
+    width: 60px;
+    height: 56px;
+    padding-top: 10px;
 }
 
 /* Left edge stones - angled left side */
@@ -680,7 +1061,7 @@ body {
     );
 }
 
-/* Row 1 (2 stones) - both edges angled */
+/* Row 1 (2 stones) - both edges more angled */
 .stone-row[data-row="1"] .stone:first-child {
     clip-path: polygon(
         10px 0%,
@@ -700,7 +1081,7 @@ body {
 }
 
 /* ============================================
-   CONTROLS
+   CONTROLS - Gold Cartouche Buttons
    ============================================ */
 
 #controls {
@@ -712,106 +1093,153 @@ body {
 }
 
 #controls button {
-    padding: 10px 14px;
+    padding: 12px 16px;
+    min-height: 44px;
+    min-width: 44px;
     font-size: 0.85rem;
     font-weight: bold;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.15s ease;
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(180deg, var(--stone-light) 0%, var(--stone-dark) 100%);
-    background-blend-mode: multiply;
-    color: var(--text-dark);
-    border: 2px solid #8B7355;
+        /* Stone texture */
+        repeating-linear-gradient(
+            45deg,
+            transparent 0px,
+            rgba(200, 180, 140, 0.08) 1px,
+            transparent 2px,
+            transparent 5px
+        ),
+        linear-gradient(180deg,
+            var(--stone-light) 0%,
+            var(--stone-mid) 50%,
+            var(--stone-dark) 100%
+        );
+    color: var(--text-carved);
+    border: 2px solid var(--stone-shadow);
     box-shadow:
-        2px 3px 6px rgba(0, 0, 0, 0.35),
-        inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+        3px 4px 8px var(--shadow-soft),
+        inset 2px 2px 3px rgba(255, 255, 255, 0.3),
+        inset -1px -1px 2px rgba(0, 0, 0, 0.1);
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 #controls button:hover {
     transform: translateY(-2px);
     box-shadow:
-        3px 5px 10px rgba(0, 0, 0, 0.4),
-        inset 1px 1px 2px rgba(255, 255, 255, 0.3);
+        4px 6px 12px var(--shadow-medium),
+        inset 2px 2px 3px rgba(255, 255, 255, 0.35),
+        inset -1px -1px 2px rgba(0, 0, 0, 0.1);
 }
 
 #controls button:active {
     transform: translateY(0);
+    box-shadow:
+        2px 2px 4px var(--shadow-soft),
+        inset 2px 2px 3px rgba(255, 255, 255, 0.25);
 }
 
+/* New Game - Gold button */
 #new-game-btn {
     background:
-        url('../img/rock-texture.jpg') center/cover,
-        linear-gradient(180deg, var(--gold-light) 0%, var(--gold-dark) 100%);
-    background-blend-mode: soft-light;
-    border-color: var(--gold-dark);
+        linear-gradient(180deg,
+            var(--gold-light) 0%,
+            var(--gold-mid) 50%,
+            var(--gold-dark) 100%
+        );
+    border-color: var(--gold-deep);
+    box-shadow:
+        3px 4px 8px var(--shadow-soft),
+        0 0 10px rgba(201, 162, 39, 0.2),
+        inset 2px 2px 3px rgba(255, 255, 255, 0.4);
 }
 
 #sound-toggle-btn,
 #music-toggle-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border-radius: 50%;
-    font-size: 1rem;
+    font-size: 1.1rem;
 }
 
 /* ============================================
-   FEEDBACK - Papyrus Scroll
+   FEEDBACK - Papyrus Scroll Banner
    ============================================ */
 
 #feedback {
-    min-height: 36px;
-    padding: 10px 32px;
-    font-size: 0.9rem;
+    min-height: 40px;
+    padding: 12px 36px;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: var(--text-dark);
+    color: var(--text-carved);
     text-align: center;
-    background: linear-gradient(180deg,
-        var(--parchment) 0%,
-        #E8D8A8 50%,
-        var(--parchment-dark) 100%
-    );
+    background:
+        /* Paper fiber texture */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            rgba(160, 140, 100, 0.03) 1px,
+            transparent 2px,
+            transparent 4px
+        ),
+        /* Aged spots */
+        radial-gradient(circle at 20% 30%, rgba(180, 160, 120, 0.1) 0%, transparent 15%),
+        radial-gradient(circle at 80% 70%, rgba(160, 140, 100, 0.08) 0%, transparent 12%),
+        /* Main papyrus gradient */
+        linear-gradient(180deg,
+            var(--papyrus-light) 0%,
+            var(--papyrus-mid) 30%,
+            var(--papyrus-mid) 70%,
+            var(--papyrus-dark) 100%
+        );
     border-radius: 4px;
-    border: 2px solid #A08060;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--papyrus-edge);
+    box-shadow:
+        0 4px 12px var(--shadow-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -2px 4px rgba(139, 115, 85, 0.15);
     position: relative;
     min-width: 280px;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
 }
 
+/* Scroll rod ends */
 #feedback::before,
 #feedback::after {
     content: '';
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 12px;
-    height: 130%;
-    background: linear-gradient(90deg,
-        #9A8060 0%,
-        #B8A070 50%,
-        #9A8060 100%
-    );
-    border-radius: 6px;
+    width: 14px;
+    height: 140%;
+    background:
+        linear-gradient(90deg,
+            var(--stone-dark) 0%,
+            var(--stone-light) 30%,
+            var(--stone-mid) 70%,
+            var(--stone-dark) 100%
+        );
+    border-radius: 7px;
     box-shadow:
-        inset 0 2px 3px rgba(255,255,255,0.3),
-        inset 0 -2px 3px rgba(0,0,0,0.2);
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.2),
+        2px 2px 4px var(--shadow-soft);
 }
 
-#feedback::before { left: -8px; }
-#feedback::after { right: -8px; }
+#feedback::before { left: -10px; }
+#feedback::after { right: -10px; }
 
 #status {
     font-size: 0.8rem;
-    color: #7A6A50;
+    color: var(--text-hieroglyph);
     text-align: center;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 /* ============================================
-   MODALS
+   MODALS - Papyrus with Gold Frame
    ============================================ */
 
 .modal {
@@ -821,10 +1249,11 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(20, 15, 10, 0.85);
+    background: rgba(20, 15, 10, 0.9);
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(3px);
 }
 
 .modal.active {
@@ -832,130 +1261,167 @@ body {
 }
 
 .modal-content {
-    background: linear-gradient(180deg,
-        var(--parchment) 0%,
-        #E8D5A3 50%,
-        var(--parchment-dark) 100%
-    );
-    border: 4px solid var(--gold);
+    background:
+        /* Paper texture */
+        repeating-linear-gradient(
+            90deg,
+            transparent 0px,
+            rgba(160, 140, 100, 0.04) 1px,
+            transparent 2px,
+            transparent 4px
+        ),
+        linear-gradient(180deg,
+            var(--papyrus-light) 0%,
+            var(--papyrus-mid) 30%,
+            var(--papyrus-mid) 70%,
+            var(--papyrus-dark) 100%
+        );
+    border: 4px solid var(--gold-mid);
     border-radius: 15px;
-    padding: 30px 45px;
+    padding: 35px 50px;
     text-align: center;
     max-width: 90%;
     box-shadow:
         0 0 40px rgba(201, 162, 39, 0.4),
-        0 15px 50px rgba(0, 0, 0, 0.5);
-    animation: modalPop 0.3s ease;
+        0 0 80px rgba(201, 162, 39, 0.2),
+        0 20px 60px var(--shadow-hard),
+        inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    animation: modalPop 0.35s ease;
     position: relative;
 }
 
+/* Hieroglyph decoration */
 .modal-content::before {
-    content: '∞  Δ  π  Σ';
+    content: '\13000 \13080 \1318D \131BC \13171 \1330F';
     position: absolute;
-    top: 8px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.9rem;
     color: var(--gold-dark);
-    letter-spacing: 8px;
-    opacity: 0.6;
+    letter-spacing: 10px;
+    opacity: 0.5;
 }
 
 @keyframes modalPop {
-    from { transform: scale(0.8); opacity: 0; }
+    from { transform: scale(0.85); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
 
 .modal-content h2 {
     color: var(--gold-dark);
-    margin-bottom: 15px;
-    font-size: 1.7rem;
-    text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+    margin-bottom: 18px;
+    font-size: 1.8rem;
+    text-shadow:
+        2px 2px 0 rgba(255, 255, 255, 0.5),
+        -1px -1px 0 rgba(100, 70, 10, 0.2);
 }
 
 .modal-content p {
-    margin: 10px 0;
-    color: var(--text-dark);
-    font-size: 1.05rem;
+    margin: 12px 0;
+    color: var(--text-carved);
+    font-size: 1.1rem;
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .modal-btn {
-    margin-top: 20px;
-    padding: 14px 45px;
-    font-size: 1.1rem;
+    margin-top: 22px;
+    padding: 16px 50px;
+    min-height: 50px;
+    font-size: 1.15rem;
     font-weight: bold;
-    background: linear-gradient(180deg,
-        var(--gold-light) 0%,
-        var(--gold) 50%,
-        var(--gold-dark) 100%
-    );
-    color: var(--text-dark);
-    border: 2px solid var(--gold-dark);
-    border-radius: 10px;
+    background:
+        linear-gradient(180deg,
+            var(--gold-light) 0%,
+            var(--gold-mid) 40%,
+            var(--gold-dark) 100%
+        );
+    color: var(--text-carved);
+    border: 3px solid var(--gold-deep);
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    box-shadow:
+        0 4px 15px var(--shadow-medium),
+        0 0 20px rgba(201, 162, 39, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.4);
+    text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .modal-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+    box-shadow:
+        0 6px 20px var(--shadow-medium),
+        0 0 30px rgba(201, 162, 39, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5);
+}
+
+.modal-btn:active {
+    transform: translateY(-1px);
 }
 
 .modal-btn-secondary {
-    background: linear-gradient(180deg,
-        var(--parchment) 0%,
-        var(--parchment-dark) 100%
-    );
-    border-color: var(--stone-dark);
-    font-size: 0.9rem;
-    padding: 10px 30px;
-    margin-top: 10px;
+    background:
+        linear-gradient(180deg,
+            var(--papyrus-light) 0%,
+            var(--papyrus-mid) 50%,
+            var(--papyrus-dark) 100%
+        );
+    border-color: var(--stone-shadow);
+    font-size: 1rem;
+    padding: 12px 35px;
+    margin-top: 12px;
+    box-shadow:
+        0 3px 10px var(--shadow-soft),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .level-up-text {
-    color: var(--gold);
+    color: var(--gold-mid);
     font-weight: bold;
-    font-size: 1.1rem;
-    margin-top: 15px;
-    animation: levelPulse 1s ease-in-out infinite;
+    font-size: 1.15rem;
+    margin-top: 18px;
+    animation: levelPulse 1.2s ease-in-out infinite;
+    text-shadow: 0 0 10px rgba(201, 162, 39, 0.5);
 }
 
 @keyframes levelPulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
+    50% { opacity: 0.85; transform: scale(1.03); }
 }
 
 /* ============================================
-   LEVEL DISPLAY
+   LEVEL DISPLAY - Royal Blue Badge
    ============================================ */
 
 .level-box {
-    background: linear-gradient(180deg,
-        #4A90D9 0%,
-        #3A7BC8 50%,
-        #2A5CA8 100%
-    );
-    padding: 4px 12px;
-    border-radius: 8px;
-    border: 2px solid #1A4C88;
+    background:
+        linear-gradient(180deg,
+            #5A9FE0 0%,
+            #4A8BD0 35%,
+            #3A70B8 100%
+        );
+    padding: 5px 14px;
+    border-radius: 10px;
+    border: 2px solid #2A5090;
     box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        0 3px 10px var(--shadow-soft),
+        0 0 15px rgba(74, 139, 208, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.35);
 }
 
 .level-box .stat-label {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 .level-box span:last-child {
     color: #FFFFFF;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
-/* Level up animation */
+/* Level up flash animation */
 .level-up-animation {
-    animation: levelUp 1s ease-out;
+    animation: levelUp 1.2s ease-out;
 }
 
 @keyframes levelUp {
@@ -963,13 +1429,13 @@ body {
         transform: scale(1);
         color: #FFFFFF;
     }
-    25% {
-        transform: scale(1.5);
-        color: #FFD700;
-        text-shadow: 0 0 20px #FFD700;
+    20% {
+        transform: scale(1.6);
+        color: var(--gold-bright);
+        text-shadow: 0 0 25px var(--gold-bright);
     }
-    50% {
-        transform: scale(1.3);
+    40% {
+        transform: scale(1.4);
         color: #FFA500;
     }
     100% {
@@ -979,97 +1445,33 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE
-   ============================================ */
-
-@media (max-width: 400px) {
-    #pyramid-scene {
-        width: 290px;
-        height: 290px;
-    }
-
-    .face-bg {
-        width: 270px;
-        height: 270px;
-    }
-
-    .stone {
-        width: 42px;
-        height: 42px;
-        font-size: 1.15rem;
-    }
-
-    .stone.target {
-        width: 52px;
-        height: 48px;
-        font-size: 1.3rem;
-    }
-
-    /* Adjusted angled edges for smaller screens */
-    .stone-row[data-row="0"] .stone.target {
-        width: 52px;
-        height: 48px;
-    }
-
-    .stone-row:not([data-row="0"]) .stone:first-child {
-        clip-path: polygon(10px 0%, 100% 0%, 100% 100%, 0% 100%);
-    }
-
-    .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
-        clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%);
-    }
-
-    #top-bar {
-        padding: 8px 12px;
-    }
-
-    .stat-box span:last-child {
-        font-size: 0.95rem;
-    }
-
-    #feedback {
-        min-width: 240px;
-        font-size: 0.85rem;
-    }
-
-    #controls button {
-        padding: 8px 10px;
-        font-size: 0.8rem;
-    }
-
-    .ruin {
-        width: 70px;
-        height: 120px;
-    }
-}
-
-/* ============================================
    MULTIPLAYER & PLAYER TURN
    ============================================ */
 
 .player-turn {
     text-align: center;
-    padding: 8px 16px;
+    padding: 10px 20px;
     margin: 8px auto;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: bold;
-    border-radius: 8px;
-    max-width: 200px;
-    animation: turnPulse 1.5s ease-in-out infinite;
+    border-radius: 10px;
+    max-width: 220px;
+    animation: turnPulse 1.8s ease-in-out infinite;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .player-turn.player1 {
-    background: linear-gradient(180deg, #4A90D9 0%, #2A5CA8 100%);
+    background: linear-gradient(180deg, #5A9FE0 0%, #3A70B8 100%);
     color: white;
-    border: 2px solid #1A4C88;
-    box-shadow: 0 0 10px rgba(74, 144, 217, 0.5);
+    border: 2px solid #2A5090;
+    box-shadow: 0 0 15px rgba(74, 139, 208, 0.5);
 }
 
 .player-turn.player2 {
-    background: linear-gradient(180deg, #D94A4A 0%, #A82A2A 100%);
+    background: linear-gradient(180deg, #E05A5A 0%, #B83A3A 100%);
     color: white;
-    border: 2px solid #881A1A;
-    box-shadow: 0 0 10px rgba(217, 74, 74, 0.5);
+    border: 2px solid #902A2A;
+    box-shadow: 0 0 15px rgba(217, 74, 74, 0.5);
 }
 
 @keyframes turnPulse {
@@ -1083,9 +1485,9 @@ body {
 }
 
 #multiplayer-toggle-btn.active {
-    background: linear-gradient(180deg, #4A90D9 0%, #2A5CA8 100%);
+    background: linear-gradient(180deg, #5A9FE0 0%, #3A70B8 100%);
     color: white;
-    border-color: #1A4C88;
+    border-color: #2A5090;
 }
 
 /* ============================================
@@ -1093,38 +1495,40 @@ body {
    ============================================ */
 
 .leaderboard-content {
-    min-width: 280px;
-    max-width: 350px;
+    min-width: 300px;
+    max-width: 380px;
 }
 
 .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 15px 0;
-    font-size: 0.9rem;
+    margin: 18px 0;
+    font-size: 0.95rem;
 }
 
 .leaderboard-table th,
 .leaderboard-table td {
-    padding: 8px 6px;
+    padding: 10px 8px;
     text-align: center;
-    border-bottom: 1px solid var(--stone-medium);
+    border-bottom: 1px solid var(--papyrus-edge);
 }
 
 .leaderboard-table th {
     background: var(--gold-dark);
     color: white;
     font-weight: bold;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 
 .leaderboard-table tbody tr:nth-child(odd) {
-    background: rgba(201, 162, 39, 0.1);
+    background: rgba(201, 162, 39, 0.08);
 }
 
 .leaderboard-table tbody tr:hover {
-    background: rgba(201, 162, 39, 0.2);
+    background: rgba(201, 162, 39, 0.18);
 }
 
+/* Gold highlight for #1 */
 .leaderboard-table tbody tr:first-child td {
     font-weight: bold;
     color: var(--gold-dark);
@@ -1136,22 +1540,25 @@ body {
 
 .name-input {
     width: 100%;
-    max-width: 200px;
-    padding: 12px 16px;
-    font-size: 1.1rem;
-    border: 2px solid var(--gold);
-    border-radius: 8px;
+    max-width: 220px;
+    padding: 14px 18px;
+    font-size: 1.15rem;
+    border: 3px solid var(--gold-mid);
+    border-radius: 10px;
     background: white;
-    color: var(--text-dark);
+    color: var(--text-carved);
     text-align: center;
-    margin: 10px 0;
+    margin: 12px 0;
     font-family: inherit;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .name-input:focus {
     outline: none;
     border-color: var(--gold-dark);
-    box-shadow: 0 0 10px rgba(201, 162, 39, 0.4);
+    box-shadow:
+        0 0 12px rgba(201, 162, 39, 0.4),
+        inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .name-input::placeholder {
@@ -1163,10 +1570,241 @@ body {
    ============================================ */
 
 #leaderboard-btn {
-    font-size: 1.2rem;
-    padding: 8px 12px;
+    font-size: 1.25rem;
+    padding: 10px 14px;
 }
 
 .muted {
     opacity: 0.5;
+    filter: grayscale(50%);
+}
+
+/* ============================================
+   MOBILE RESPONSIVE - Touch Optimized
+   ============================================ */
+
+@media (max-width: 440px) {
+    #game-container {
+        padding: 6px;
+        gap: 5px;
+    }
+
+    #pyramid-scene {
+        width: 300px;
+        height: 300px;
+    }
+
+    .face-bg {
+        width: 280px;
+        height: 280px;
+    }
+
+    .stone {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        margin: 0 2px;
+    }
+
+    .stone.target {
+        width: 52px;
+        height: 50px;
+        font-size: 1.35rem;
+    }
+
+    .stone-row[data-row="0"] .stone.target {
+        width: 54px;
+        height: 50px;
+    }
+
+    .stone-row:not([data-row="0"]) .stone:first-child {
+        clip-path: polygon(10px 0%, 100% 0%, 100% 100%, 0% 100%);
+    }
+
+    .stone-row:not([data-row="0"]) .stone:last-child:not(:first-child) {
+        clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%);
+    }
+
+    #top-bar {
+        padding: 10px 14px;
+    }
+
+    .stat-box span:last-child {
+        font-size: 1rem;
+    }
+
+    .operation-display {
+        padding: 5px 16px;
+    }
+
+    #operation-symbol {
+        font-size: 1.2rem;
+    }
+
+    #feedback {
+        min-width: 250px;
+        font-size: 0.9rem;
+        padding: 10px 32px;
+    }
+
+    #controls {
+        gap: 5px;
+    }
+
+    #controls button {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        min-height: 44px;
+    }
+
+    .ruin {
+        width: 65px;
+        height: 120px;
+    }
+
+    .ruin-left::before,
+    .ruin-right::before {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    #pyramid-scene {
+        width: 280px;
+        height: 280px;
+    }
+
+    .face-bg {
+        width: 260px;
+        height: 260px;
+    }
+
+    .stone {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+
+    .stone.target {
+        width: 48px;
+        height: 46px;
+        font-size: 1.25rem;
+    }
+
+    #feedback {
+        min-width: 220px;
+        font-size: 0.85rem;
+    }
+
+    .modal-content {
+        padding: 25px 30px;
+    }
+
+    .modal-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .modal-btn {
+        padding: 14px 35px;
+        font-size: 1rem;
+    }
+}
+
+/* Landscape mode on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+    #game-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 100%;
+        padding: 4px;
+    }
+
+    #top-bar {
+        width: auto;
+        flex-grow: 1;
+        max-width: 300px;
+    }
+
+    #pyramid-scene {
+        width: 260px;
+        height: 260px;
+    }
+
+    .face-bg {
+        width: 240px;
+        height: 240px;
+    }
+
+    .stone {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+
+    .stone.target {
+        width: 44px;
+        height: 42px;
+    }
+
+    #controls {
+        width: 100%;
+    }
+
+    #feedback {
+        min-width: 200px;
+    }
+
+    .ruin {
+        display: none;
+    }
+}
+
+/* High DPI / Retina displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .stone,
+    .stone.target,
+    .stone.solved {
+        /* Sharper edges on high DPI */
+        -webkit-font-smoothing: antialiased;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .stone:hover {
+        transform: none;
+        box-shadow:
+            4px 5px 8px var(--shadow-medium),
+            2px 2px 4px var(--shadow-soft),
+            inset 3px 3px 6px rgba(255, 255, 255, 0.4),
+            inset -2px -2px 5px rgba(80, 60, 40, 0.25);
+    }
+
+    .stone:active {
+        transform: scale(1.05);
+        box-shadow:
+            3px 4px 6px var(--shadow-medium),
+            inset 2px 2px 4px rgba(255, 255, 255, 0.3),
+            inset -2px -2px 4px rgba(80, 60, 40, 0.2);
+    }
+
+    #controls button:hover {
+        transform: none;
+    }
+
+    #controls button:active {
+        transform: scale(0.98);
+    }
 }
