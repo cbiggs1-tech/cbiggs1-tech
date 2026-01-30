@@ -87,7 +87,7 @@ body {
     overflow: hidden;
     /* FULL SCREEN photorealistic background */
     background:
-        url('../img/desert-bg.jpg') center center / cover no-repeat,
+        url('../img/desert-bg.jpg?v=2') center center / cover no-repeat,
         /* Fallback gradient */
         linear-gradient(180deg,
             var(--sky-top) 0%,
