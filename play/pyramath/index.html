@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>PyraMath</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/styles.css?v=32">
+    <link rel="stylesheet" href="css/styles.css?v=33">
 </head>
 <body>
     <!-- Desert scene background -->
@@ -75,9 +75,16 @@
         <div id="feedback">Find two stones that equal the target!</div>
 
         <div id="secondary-controls">
+            <button id="pause-btn">⏸️ Pause</button>
             <button id="leaderboard-btn">🏆</button>
             <button id="sound-toggle-btn">🔊</button>
             <button id="music-toggle-btn">🎵</button>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pause-overlay">
+            <div class="pause-banner">PAUSED</div>
+            <div class="pause-hint">Press Space or tap to resume</div>
         </div>
 
         <div id="status"></div>
@@ -138,6 +145,6 @@
         </div>
     </div>
 
-    <script src="js/pyramath.js?v=28"></script>
+    <script src="js/pyramath.js?v=29"></script>
 </body>
 </html>

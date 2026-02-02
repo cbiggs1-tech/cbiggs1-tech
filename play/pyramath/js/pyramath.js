@@ -112,6 +112,9 @@ let currentPlayer = 1;
 let player1Score = 0;
 let player2Score = 0;
 
+// Pause state
+let isPaused = false;
+
 // Division pairs - stored during generation for validation
 // This ensures only the intended pairs are accepted (prevents cross-pairing)
 let validDivisionPairs = [];
@@ -248,7 +251,7 @@ function isHighScore(scoreVal) {
 // ============================================
 let pyramid, levelValue, scoreValue, timerValue, streakValue;
 let operationSymbol, operationName, feedback, statusDisplay;
-let newGameBtn, rotateLeftBtn, rotateRightBtn, soundToggleBtn, musicToggleBtn;
+let newGameBtn, rotateLeftBtn, rotateRightBtn, soundToggleBtn, musicToggleBtn, pauseBtn, pauseOverlay;
 let levelCompleteModal, pyramidCompleteModal, levelContinueBtn, playAgainBtn, nextLevelBtn;
 let multiplayerToggleBtn, playerTurnDisplay;
 let leaderboardBtn, leaderboardModal, leaderboardBody, closeLeaderboardBtn;
@@ -665,6 +668,12 @@ function initPyramid(keepScore = false) {
     completedFaces = new Set();
     currentPlayer = 1;
 
+    // Reset pause state
+    isPaused = false;
+    if (pauseBtn) pauseBtn.textContent = '⏸️ Pause';
+    if (pauseOverlay) pauseOverlay.classList.remove('active');
+    document.body.classList.remove('paused');
+
     updateLevelDisplay();
     updateScoreDisplay();
     updateStreakDisplay();
@@ -729,6 +738,9 @@ function advanceToNextLevel() {
 // ============================================
 
 function handleStoneClick(stone) {
+    // Ignore clicks when paused
+    if (isPaused) return;
+
     const operation = stone.dataset.operation;
     const currentOperation = FACE_ORDER[currentFaceIndex];
 
@@ -1281,6 +1293,36 @@ function playSound(soundName) {
 }
 
 // ============================================
+// Pause Functions
+// ============================================
+
+function togglePause() {
+    isPaused = !isPaused;
+
+    if (isPaused) {
+        // Pause the game
+        stopTimer();
+        if (pauseBtn) pauseBtn.textContent = '▶️ Resume';
+        if (pauseOverlay) pauseOverlay.classList.add('active');
+        document.body.classList.add('paused');
+    } else {
+        // Resume the game
+        resumeTimer();
+        if (pauseBtn) pauseBtn.textContent = '⏸️ Pause';
+        if (pauseOverlay) pauseOverlay.classList.remove('active');
+        document.body.classList.remove('paused');
+    }
+}
+
+function resumeTimer() {
+    if (timerInterval) return; // Already running
+    timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+// ============================================
 // Initialize DOM Elements and Event Listeners
 // ============================================
 
@@ -1300,6 +1342,8 @@ function initDOMElements() {
     rotateRightBtn = document.getElementById('rotate-right-btn');
     soundToggleBtn = document.getElementById('sound-toggle-btn');
     musicToggleBtn = document.getElementById('music-toggle-btn');
+    pauseBtn = document.getElementById('pause-btn');
+    pauseOverlay = document.getElementById('pause-overlay');
     multiplayerToggleBtn = document.getElementById('multiplayer-toggle-btn');
     playerTurnDisplay = document.getElementById('player-turn-display');
 
@@ -1340,6 +1384,8 @@ function initEventListeners() {
 
     if (soundToggleBtn) soundToggleBtn.addEventListener('click', toggleSound);
     if (musicToggleBtn) musicToggleBtn.addEventListener('click', toggleMusic);
+    if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
+    if (pauseOverlay) pauseOverlay.addEventListener('click', togglePause);
     if (multiplayerToggleBtn) multiplayerToggleBtn.addEventListener('click', toggleMultiplayer);
 
     if (levelContinueBtn) {
@@ -1404,20 +1450,30 @@ function initEventListeners() {
     }
 
     document.addEventListener('keydown', (e) => {
+        // Spacebar toggles pause
+        if (e.key === ' ' || e.code === 'Space') {
+            e.preventDefault(); // Prevent page scroll
+            togglePause();
+            return;
+        }
         if (e.key === 'l' || e.key === 'L') {
             advanceToNextLevel();
             return;
         }
         switch (e.key) {
             case 'ArrowLeft':
-                rotateLeft();
+                if (!isPaused) rotateLeft();
                 break;
             case 'ArrowRight':
-                rotateRight();
+                if (!isPaused) rotateRight();
                 break;
             case 'Escape':
-                clearSelection();
-                clearFeedback();
+                if (isPaused) {
+                    togglePause(); // Resume on Escape if paused
+                } else {
+                    clearSelection();
+                    clearFeedback();
+                }
                 hideLeaderboardModal();
                 break;
         }
